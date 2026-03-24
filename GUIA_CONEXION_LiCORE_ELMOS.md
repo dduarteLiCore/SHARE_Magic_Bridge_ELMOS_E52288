@@ -6,7 +6,7 @@ Esta guía documenta la asignación de pines y consideraciones eléctricas al ad
 
 De acuerdo al análisis visual de la placa provista:
 
-![](/home/david/Documents/SHARE_Magic_Bridge_ELMOS_E52288/MagicBridge_Protected_Package/docs/Conector.png)
+![](MagicBridge_Protected_Package/docs/Conector.png)
 
 - **Lado Derecho (TB1 - Bloque de terminales verde)**: Cuenta con 5 borneras etiquetadas de arriba a abajo como `VOUT`, `PGND`, `CAN-H`, `CAN-L` y `WRITE`.
 - **Lado Izquierdo (Pads de soldadura)**: 5 orificios numerados del 1 al 5.
