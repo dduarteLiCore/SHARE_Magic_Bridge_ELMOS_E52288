@@ -1,0 +1,15 @@
+#!/usr/bin/env python3
+"""MagicBridge - Ejecución de comandos"""
+import sys
+import os
+
+# Directorio donde está este script
+script_dir = os.path.dirname(os.path.abspath(__file__))
+pyc_file = os.path.join(script_dir, "2_ejecutar_comando_v3.cpython-312.pyc")
+
+# Importar y ejecutar el bytecode
+import importlib.util
+spec = importlib.util.spec_from_file_location("comando", pyc_file)
+module = importlib.util.module_from_spec(spec)
+sys.modules["comando"] = module
+spec.loader.exec_module(module)

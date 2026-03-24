@@ -1,0 +1,579 @@
+================================================================================
+EJEMPLO 3: PROGRAMAR Y VERIFICAR CHIP
+================================================================================
+
+DESCRIPCIÓN:
+------------
+Este VI programa un chip ELMOS individual usando los datos previamente cargados
+en el MagicBridge, y opcionalmente verifica la programación correcta.
+
+ENTRADAS:
+  - Puerto COM (string): Puerto serial
+  - PCB (numeric): Número de PCB (3, 5, o 6)
+  - Variante (string): Variante del chip ("A", "B", "C", o "D")
+  - Verificar (boolean): TRUE para verificar después de programar
+  - Timeout (numeric): Timeout en segundos (default: 120)
+
+SALIDAS:
+  - Éxito programación (boolean): TRUE si programación OK
+  - Éxito verificación (boolean): TRUE si verificación OK (si aplica)
+  - CRC (string): CRC calculado (hex)
+  - Duración programación (numeric): Tiempo en segundos
+  - Duración verificación (numeric): Tiempo en segundos (si aplica)
+  - Mensaje (string): Mensaje de status
+  - JSON programación (string): Respuesta JSON de programación
+  - JSON verificación (string): Respuesta JSON de verificación
+
+FRONT PANEL:
+------------
+
+Controles:
+  - [String] Puerto COM: Combo box
+  - [Numeric] PCB: Ring selector (3, 5, 6)
+  - [String] Variante: Ring selector (A, B, C, D)
+  - [Boolean] Verificar después de programar: Checkbox
+  - [Numeric] Timeout (seg): Default 120
+  - [Button] Programar Chip: Botón principal
+  - [Button] Cancelar: Botón para cancelar
+
+Indicadores:
+  - [LED Boolean] Programación OK: Verde=OK, Rojo=Error
+  - [LED Boolean] Verificación OK: Verde=OK, Rojo=Error, Gris=No ejecutada
+  - [String] CRC: Mostrar CRC en hexadecimal
+  - [Numeric] Tiempo Programación: Segundos
+  - [Numeric] Tiempo Verificación: Segundos
+  - [String] Mensaje Status: Estado actual
+  - [Progress] Operación en curso: Indeterminado
+
+Layout recomendado:
+┌──────────────────────────────────────────────────────────────┐
+│  PROGRAMAR CHIP ELMOS                                        │
+├──────────────────────────────────────────────────────────────┤
+│                                                               │
+│  Puerto COM: [COM3     ▼]  PCB: [5 ▼]  Variante: [D ▼]      │
+│                                                               │
+│  ☑ Verificar después de programar                           │
+│                                                               │
+│  Timeout: [120    ] segundos                                 │
+│                                                               │
+│  ┌─────────────────────────────────────────────────────────┐ │
+│  │  ESTADO DE PROGRAMACIÓN                                 │ │
+│  │                                                          │ │
+│  │  Programación: ● OK                                     │ │
+│  │  Verificación: ● OK                                     │ │
+│  │                                                          │ │
+│  │  CRC: [A5B3]                                            │ │
+│  │                                                          │ │
+│  │  Tiempo programación: 32.5 seg                          │ │
+│  │  Tiempo verificación: 30.2 seg                          │ │
+│  │                                                          │ │
+│  │  [████████████████████] Operación completada            │ │
+│  │                                                          │ │
+│  └─────────────────────────────────────────────────────────┘ │
+│                                                               │
+│  Status: Chip programado y verificado exitosamente           │
+│                                                               │
+│  [Programar Chip]  [Programar Siguiente]  [Cancelar]         │
+│                                                               │
+└──────────────────────────────────────────────────────────────┘
+
+BLOCK DIAGRAM (Pseudocódigo):
+-----------------------------
+
+MAIN SEQUENCE:
+
+1. Validar entradas
+   IF puerto_com vacío THEN
+      mensaje = "Error: Puerto COM no especificado"
+      RETURN FALSE
+   END IF
+
+   IF pcb NOT IN [3, 5, 6] THEN
+      mensaje = "Error: PCB inválida"
+      RETURN FALSE
+   END IF
+
+   IF variante NOT IN ["A", "B", "C", "D"] THEN
+      mensaje = "Error: Variante inválida"
+      RETURN FALSE
+   END IF
+
+2. PROGRAMAR CHIP (Write Operation)
+
+   comando_write = BuildCommandoWrite(pcb, variante)
+   // Ejemplos: "W3a", "W5d", "W6b"
+
+   json_write = "C:\Temp\magicbridge_write_" + timestamp + ".json"
+
+   argumentos_write = BuildString(
+      "C:\MagicBridge\bin\magicbridge-cmd.bat ",
+      puerto_com, " ",
+      comando_write, " ",
+      "--json ", json_write,
+      " --timeout ", ToString(timeout)
+   )
+
+   Actualizar Status = "Programando chip..."
+   LED Programación = Amarillo (en progreso)
+
+   Iniciar Timer_Write
+
+   result_write = SystemExec(
+      command = "python",
+      arguments = argumentos_write,
+      timeout = timeout * 1000
+   )
+
+   duracion_write = Timer_Write.Elapsed
+
+   IF result_write.exit_code == 0 THEN
+      json_data_write = ParseJSON(ReadFile(json_write))
+
+      IF json_data_write["success"] == TRUE THEN
+         exito_programacion = TRUE
+         crc_programacion = json_data_write["crc"]
+         mensaje_write = "Programación exitosa, CRC: " + crc_programacion
+         LED Programación = Verde
+      ELSE
+         exito_programacion = FALSE
+         mensaje_write = "Error: " + json_data_write["error"]
+         LED Programación = Rojo
+         RETURN  // No continuar con verificación
+      END IF
+   ELSE
+      exito_programacion = FALSE
+      mensaje_write = "Error en comando de programación"
+      LED Programación = Rojo
+      RETURN
+   END IF
+
+3. VERIFICAR CHIP (Read Operation) - Solo si checkbox activado
+
+   IF verificar == FALSE THEN
+      exito_verificacion = N/A
+      LED Verificación = Gris
+      SKIP TO STEP 4
+   END IF
+
+   comando_read = BuildCommandoRead(pcb, variante)
+   // Ejemplos: "R3a", "R5d", "R6b"
+
+   json_read = "C:\Temp\magicbridge_read_" + timestamp + ".json"
+
+   argumentos_read = BuildString(
+      "C:\MagicBridge\bin\magicbridge-cmd.bat ",
+      puerto_com, " ",
+      comando_read, " ",
+      "--json ", json_read,
+      " --timeout ", ToString(timeout)
+   )
+
+   Actualizar Status = "Verificando chip..."
+   LED Verificación = Amarillo (en progreso)
+
+   Iniciar Timer_Read
+
+   result_read = SystemExec(
+      command = "python",
+      arguments = argumentos_read,
+      timeout = timeout * 1000
+   )
+
+   duracion_read = Timer_Read.Elapsed
+
+   IF result_read.exit_code == 0 THEN
+      json_data_read = ParseJSON(ReadFile(json_read))
+
+      IF json_data_read["success"] == TRUE THEN
+         exito_verificacion = TRUE
+         crc_verificacion = json_data_read["crc"]
+
+         // Comparar CRC de programación vs lectura
+         IF crc_programacion == crc_verificacion THEN
+            mensaje_read = "Verificación OK, CRC coincide: " + crc_verificacion
+            LED Verificación = Verde
+         ELSE
+            exito_verificacion = FALSE
+            mensaje_read = "ERROR: CRC no coincide. Write: " + crc_programacion +
+                          ", Read: " + crc_verificacion
+            LED Verificación = Rojo
+         END IF
+      ELSE
+         exito_verificacion = FALSE
+         mensaje_read = "Error en lectura: " + json_data_read["error"]
+         LED Verificación = Rojo
+      END IF
+   ELSE
+      exito_verificacion = FALSE
+      mensaje_read = "Error en comando de verificación"
+      LED Verificación = Rojo
+   END IF
+
+4. Resumen final
+
+   IF exito_programacion AND (NOT verificar OR exito_verificacion) THEN
+      mensaje_final = "Chip programado exitosamente"
+      IF verificar THEN
+         mensaje_final = mensaje_final + " y verificado OK"
+      END IF
+      resultado_final = TRUE
+   ELSE
+      mensaje_final = "ERROR: "
+      IF NOT exito_programacion THEN
+         mensaje_final = mensaje_final + "Programación falló. "
+      END IF
+      IF verificar AND NOT exito_verificacion THEN
+         mensaje_final = mensaje_final + "Verificación falló."
+      END IF
+      resultado_final = FALSE
+   END IF
+
+   Actualizar "Mensaje Status" = mensaje_final
+
+5. Cleanup y retorno
+   Delete temporary JSON files (opcional)
+
+   RETURN resultado_final
+
+FUNCIÓN BuildCommandoWrite:
+---------------------------
+
+INPUT: pcb (numeric), variante (string)
+OUTPUT: comando (string)
+
+comando = "W" + ToString(pcb) + LowerCase(variante)
+
+Ejemplos:
+  pcb=3, variante="A" → "W3a"
+  pcb=5, variante="D" → "W5d"
+  pcb=6, variante="B" → "W6b"
+
+FUNCIÓN BuildCommandoRead:
+--------------------------
+
+INPUT: pcb (numeric), variante (string)
+OUTPUT: comando (string)
+
+comando = "R" + ToString(pcb) + LowerCase(variante)
+
+Ejemplos:
+  pcb=3, variante="A" → "R3a"
+  pcb=5, variante="D" → "R5d"
+  pcb=6, variante="B" → "R6b"
+
+DIAGRAMA DE FLUJO:
+------------------
+
+[Inicio]
+   ↓
+[Validar entradas] ──ERROR──→ [Retornar FALSE]
+   ↓ OK
+[Build comando Write: WXy]
+   ↓
+[Ejecutar SystemExec Write]
+   ↓
+[Capturar resultado]
+   ↓
+[Parse JSON write]
+   ↓
+[success==TRUE?] ──NO──→ [LED Rojo] → [Retornar FALSE]
+   ↓ SÍ
+[LED Verde programación]
+[Guardar CRC]
+   ↓
+[Verificar activado?] ──NO──→ [Retornar TRUE]
+   ↓ SÍ
+[Build comando Read: RXy]
+   ↓
+[Ejecutar SystemExec Read]
+   ↓
+[Capturar resultado]
+   ↓
+[Parse JSON read]
+   ↓
+[success==TRUE?] ──NO──→ [LED Rojo] → [Retornar FALSE]
+   ↓ SÍ
+[CRC Write == CRC Read?] ──NO──→ [LED Rojo] → [Retornar FALSE]
+   ↓ SÍ
+[LED Verde verificación]
+   ↓
+[Retornar TRUE]
+   ↓
+[Fin]
+
+MANEJO DE ERRORES:
+------------------
+
+Error 1: Puerto COM no disponible
+  Exit code: 2
+  JSON: {"success": false, "error": "No se puede abrir puerto"}
+  Acción: Verificar conexión, re-detectar puerto
+
+Error 2: Timeout durante programación
+  Exit code: 3
+  JSON: {"success": false, "error": "Timeout"}
+  Acción: Aumentar timeout, verificar chip conectado
+
+Error 3: CRC mismatch
+  Write exitoso pero Read muestra CRC diferente
+  Acción: Re-programar chip, verificar integridad de datos
+
+Error 4: Chip no responde
+  Exit code: 2
+  JSON: {"success": false, "error": "Sin respuesta del chip"}
+  Acción: Verificar chip en socket, verificar PCB
+
+Error 5: Datos no cargados previamente
+  Exit code: 1
+  JSON: {"success": false, "error": "No hay datos cargados"}
+  Acción: Ejecutar CargarDatos.vi primero
+
+EJEMPLO DE USO:
+---------------
+
+Caso 1: Programar y verificar PCB 5 variante D
+  Inputs:
+    puerto_com = "COM3"
+    pcb = 5
+    variante = "D"
+    verificar = TRUE
+    timeout = 120
+
+  Ejecutar VI →
+
+  Paso 1: Programar
+    Wait ~30-40 segundos
+    Output: exito_programacion = TRUE, crc = "A5B3"
+
+  Paso 2: Verificar
+    Wait ~30-40 segundos
+    Output: exito_verificacion = TRUE, crc = "A5B3"
+
+  Resultado final:
+    LED Programación: Verde
+    LED Verificación: Verde
+    Mensaje: "Chip programado exitosamente y verificado OK"
+    Retorno: TRUE
+
+Caso 2: Solo programar sin verificar
+  Inputs:
+    ...
+    verificar = FALSE
+
+  Ejecutar VI →
+
+  Paso 1: Programar
+    Wait ~30-40 segundos
+    Output: exito_programacion = TRUE
+
+  Paso 2: Verificar
+    SALTADO
+
+  Resultado final:
+    LED Programación: Verde
+    LED Verificación: Gris (no ejecutada)
+    Mensaje: "Chip programado exitosamente"
+    Retorno: TRUE
+
+Caso 3: Error de CRC
+  Ejecutar VI →
+
+  Programación: OK, CRC = "A5B3"
+  Verificación: OK, pero CRC = "1234" (diferente!)
+
+  Resultado final:
+    LED Programación: Verde
+    LED Verificación: Rojo
+    Mensaje: "ERROR: CRC no coincide. Write: A5B3, Read: 1234"
+    Retorno: FALSE
+
+VALORES RECOMENDADOS:
+---------------------
+
+Timeout:
+  - Operación normal: 120 segundos
+  - Chips lentos: 180 segundos
+  - Default seguro: 120 segundos
+
+Verificación:
+  - Producción: Activar verificación (TRUE)
+  - Testing rápido: Desactivar verificación (FALSE)
+  - Recomendado: Siempre TRUE para QA
+
+Comandos generados:
+  PCB 3:
+    - Write: W3a, W3b, W3c, W3d
+    - Read:  R3a, R3b, R3c, R3d
+
+  PCB 5:
+    - Write: W5a, W5b, W5c, W5d
+    - Read:  R5a, R5b, R5c, R5d
+
+  PCB 6:
+    - Write: W6a, W6b, W6c, W6d
+    - Read:  R6a, R6b, R6c, R6d
+
+OPTIMIZACIONES:
+---------------
+
+1. Loop para programar múltiples chips
+   ┌───────────────────────────────────┐
+   │ WHILE chips_pendientes > 0 DO    │
+   │    ProgramarChip()                │
+   │    IF exito THEN                  │
+   │       contador_ok++               │
+   │    ELSE                           │
+   │       contador_fail++             │
+   │    END IF                         │
+   │    Wait for chip_change (sensor)  │
+   │ END WHILE                         │
+   └───────────────────────────────────┘
+
+2. Retry automático en caso de fallo
+   max_retries = 3
+   FOR i = 1 TO max_retries DO
+      exito = ProgramarChip()
+      IF exito THEN
+         BREAK
+      END IF
+      Wait 1 segundo
+   END FOR
+
+3. Logging detallado
+   Log cada operación con:
+   - Timestamp
+   - PCB y variante
+   - CRC obtenido
+   - Duración
+   - Resultado (PASS/FAIL)
+
+4. Estadísticas en tiempo real
+   - Total chips programados
+   - Total exitosos / fallidos
+   - Tasa de éxito (%)
+   - Tiempo promedio por chip
+   - Throughput (chips/minuto)
+
+INTEGRACIÓN EN LOOP DE PRODUCCIÓN:
+-----------------------------------
+
+Flujo completo de producción:
+
+┌────────────────────────────────────────────────────┐
+│ INICIO TURNO                                       │
+│    ↓                                               │
+│ [DetectarPuerto.vi] → puerto_com                   │
+│    ↓                                               │
+│ [CargarDatos.vi] → Una vez al inicio               │
+│    ↓                                               │
+│ [LOOP PRODUCCIÓN]                                  │
+│    │                                               │
+│    ├─→ [Esperar chip en socket] (sensor)          │
+│    │         ↓                                     │
+│    ├─→ [ProgramarChip.vi]                         │
+│    │         ↓                                     │
+│    ├─→ [IF éxito?] ──SÍ──→ [Bandeja OK]          │
+│    │         │                                     │
+│    │         └──NO──→ [Bandeja FAIL]              │
+│    │         ↓                                     │
+│    ├─→ [Actualizar estadísticas]                  │
+│    │         ↓                                     │
+│    ├─→ [Log a base de datos]                      │
+│    │         ↓                                     │
+│    └─→ [Retirar chip del socket]                  │
+│              ↓                                     │
+│         [Loop continúa]                            │
+│                                                    │
+│ FIN TURNO                                          │
+│    ↓                                               │
+│ [Generar reporte del turno]                        │
+└────────────────────────────────────────────────────┘
+
+ARCHIVOS NECESARIOS:
+--------------------
+
+Scripts Python:
+  - magicbridge-cmd.bat (wrapper Windows)
+  - 2_ejecutar_comando_v3.cpython-312.pyc (bytecode)
+  - Python 3.6+ instalado
+  - pyserial library
+
+Prerequisitos:
+  - Datos HMF previamente cargados (CargarDatos.vi)
+  - MagicBridge conectado y detectado
+
+NOTAS IMPORTANTES:
+------------------
+
+1. Datos deben estar cargados ANTES
+   - Ejecutar CargarDatos.vi primero
+   - Una sola carga sirve para múltiples chips
+   - No necesitas recargar entre chips
+
+2. Tiempo de programación
+   - Típicamente 30-40 segundos
+   - Depende del tamaño de datos
+   - Limitado por protocolo I2C y programación OTP
+
+3. CRC es crítico
+   - Siempre verificar CRC
+   - Si no coincide, chip puede estar defectuoso
+   - Re-programar no siempre soluciona (OTP = One Time Programmable)
+
+4. Recomendaciones de producción
+   - Siempre activar verificación
+   - Implementar retry (1-2 intentos máximo)
+   - Logging completo para trazabilidad
+   - Separar físicamente chips OK y FAIL
+
+TROUBLESHOOTING:
+----------------
+
+Problema: "No hay datos cargados"
+Solución:
+  1. Ejecutar CargarDatos.vi primero
+  2. Verificar que carga fue exitosa
+  3. Si falla, re-iniciar MagicBridge (desconectar/conectar USB)
+
+Problema: CRC siempre diferente
+Solución:
+  1. Verificar integridad del archivo HMF
+  2. Re-cargar datos HMF
+  3. Verificar PCB y variante correctas
+  4. Probar con otro chip ELMOS
+
+Problema: Timeout en programación
+Solución:
+  1. Verificar chip está correctamente en socket
+  2. Verificar conexiones I2C de PCB
+  3. Aumentar timeout a 180 segundos
+  4. Verificar que chip no esté dañado
+
+Problema: Programación OK pero verificación falla
+Solución:
+  1. Puede ser chip defectuoso
+  2. Verificar alimentación estable de PCB
+  3. Verificar temperatura ambiente (chips sensibles a temp)
+  4. Re-intentar una vez más
+
+REFERENCIAS:
+------------
+
+Documentación relacionada:
+  - ../docs/INTEGRACION_LABVIEW.md (Sección 5: Ejemplo completo)
+  - ../examples/EJEMPLO_PASO_A_PASO.md (Ejemplo 3)
+
+Scripts relacionados:
+  - 2_ejecutar_comando_v3.py (código fuente)
+  - magicbridge-cmd.bat (wrapper)
+
+Ejemplos relacionados:
+  - Ejemplo_1_DetectarPuerto.txt
+  - Ejemplo_2_CargarDatos.txt
+
+Siguiente ejemplo:
+  - Ejemplo_4_AplicacionProduccion.txt (aplicación completa)
+
+================================================================================
+FIN DEL EJEMPLO 3
+================================================================================

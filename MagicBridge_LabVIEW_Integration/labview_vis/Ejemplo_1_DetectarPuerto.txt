@@ -1,0 +1,295 @@
+================================================================================
+EJEMPLO 1: DETECTAR PUERTO COM AUTOMÁTICAMENTE
+================================================================================
+
+DESCRIPCIÓN:
+------------
+Este VI detecta automáticamente el puerto COM donde está conectado el
+MagicBridge ELMOS Programmer. Busca por VID:PID 1d50:6015.
+
+ENTRADAS:
+  - Ninguna (detección automática)
+
+SALIDAS:
+  - Puerto COM detectado (string): "COM3", "/dev/ttyACM0", etc.
+  - Estado (boolean): TRUE si encontrado, FALSE si no
+  - Mensaje de error (string): Descripción si ocurre error
+
+FRONT PANEL:
+------------
+
+Controles:
+  (ninguno - funciona automáticamente)
+
+Indicadores:
+  - [String] Puerto COM: Muestra el puerto detectado (ej: "COM3")
+  - [LED Boolean] MagicBridge Detectado: Verde=Encontrado, Rojo=No encontrado
+  - [String] Mensaje Status: Muestra status de la operación
+
+Layout recomendado:
+┌─────────────────────────────────────────────────────────┐
+│  DETECTAR MAGICBRIDGE                                   │
+├─────────────────────────────────────────────────────────┤
+│                                                          │
+│  🔍 Buscando MagicBridge...                             │
+│                                                          │
+│  Puerto COM Detectado: [COM3            ]               │
+│                                                          │
+│  Estado: ●  MagicBridge Encontrado                      │
+│                                                          │
+│  Mensaje: [Dispositivo encontrado en COM3]              │
+│                                                          │
+│  [Detectar Nuevamente]  [Continuar]                     │
+│                                                          │
+└─────────────────────────────────────────────────────────┘
+
+BLOCK DIAGRAM (Pseudocódigo):
+-----------------------------
+
+1. Inicializar variables
+   puerto_detectado = ""
+   encontrado = FALSE
+   mensaje = ""
+
+2. Configurar System Exec.vi
+   ┌──────────────────────────────────────┐
+   │ System Exec.vi                       │
+   ├──────────────────────────────────────┤
+   │ Command Line: "python"               │
+   │ Arguments: "C:\MagicBridge\bin\detect_port.py" │
+   │ Working Dir: "C:\MagicBridge\bin\"   │
+   │ Wait: TRUE                           │
+   │ Timeout: 5000 ms                     │
+   └──────────────────────────────────────┘
+
+3. Ejecutar System Exec
+
+4. Capturar salida
+   stdout → puerto_detectado
+   exit_code → codigo_salida
+
+5. Analizar resultado
+   IF (exit_code == 0) AND (puerto_detectado != "NOT_FOUND") THEN
+      encontrado = TRUE
+      mensaje = "Dispositivo encontrado en " + puerto_detectado
+      puerto_detectado = Trim(puerto_detectado)  // Remover \n
+   ELSE
+      encontrado = FALSE
+      mensaje = "MagicBridge no detectado. Verificar conexión USB."
+      puerto_detectado = ""
+   END IF
+
+6. Actualizar indicadores
+   "Puerto COM" → puerto_detectado
+   "MagicBridge Detectado" LED → encontrado
+   "Mensaje Status" → mensaje
+
+7. Retornar valores
+   Output: puerto_detectado, encontrado, mensaje
+
+DIAGRAMA DE FLUJO:
+------------------
+
+[Inicio]
+   ↓
+[Ejecutar detect_port.py via System Exec]
+   ↓
+[Capturar stdout y exit_code]
+   ↓
+[exit_code == 0?] ──NO──→ [encontrado = FALSE]
+   ↓ SÍ                         ↓
+[stdout == "NOT_FOUND"?] ──SÍ──→ [encontrado = FALSE]
+   ↓ NO                          ↓
+[encontrado = TRUE]              ↓
+[puerto = stdout]                ↓
+   ↓                             ↓
+   └─────────────────────────────┘
+                ↓
+   [Actualizar indicadores]
+                ↓
+            [Retornar]
+                ↓
+              [Fin]
+
+CONFIGURACIÓN DETALLADA DE SYSTEM EXEC:
+---------------------------------------
+
+Block Diagram:
+┌────────────────────────────────────────────────────┐
+│                                                    │
+│  "python" ──→ [command line]                      │
+│                      │                             │
+│  Path Constant ─────→ [arguments]                  │
+│  "C:\...\detect_port.py"  │                       │
+│                      │                             │
+│  "C:\...\bin\" ─────→ [working dir]               │
+│                      │                             │
+│  TRUE ──────────────→ [wait until completion]      │
+│                      │                             │
+│  5000 ──────────────→ [timeout ms]                │
+│                      │                             │
+│                [System Exec.vi]                    │
+│                      │                             │
+│        ┌─────────────┼─────────────┐              │
+│        ↓             ↓             ↓              │
+│   [stdout]    [exit code]    [stderr]            │
+│        │             │             │              │
+│        ↓             ↓             ↓              │
+│  [String Ind] [Numeric Ind] [String Ind]         │
+│                                                    │
+└────────────────────────────────────────────────────┘
+
+MANEJO DE ERRORES:
+------------------
+
+Error 1: Python no encontrado
+  Síntoma: Exit code != 0, stderr contiene mensaje de error
+  Solución: Verificar que Python esté en PATH
+  Mensaje: "Error: Python no encontrado en PATH"
+
+Error 2: Script no encontrado
+  Síntoma: Exit code != 0, stderr contiene "No such file"
+  Solución: Verificar ruta del script
+  Mensaje: "Error: Script detect_port.py no encontrado"
+
+Error 3: Timeout
+  Síntoma: System Exec timeout
+  Solución: Aumentar timeout o verificar sistema
+  Mensaje: "Error: Timeout esperando respuesta"
+
+Error 4: MagicBridge no detectado
+  Síntoma: Exit code == 0, stdout == "NOT_FOUND"
+  Solución: Conectar MagicBridge, verificar cable USB
+  Mensaje: "MagicBridge no detectado. Verificar conexión USB."
+
+EJEMPLO DE USO:
+---------------
+
+Caso 1: MagicBridge detectado en COM3
+  Ejecutar VI → Wait →
+  Salida: puerto_detectado = "COM3", encontrado = TRUE
+  Indicador LED: Verde
+  Mensaje: "Dispositivo encontrado en COM3"
+
+Caso 2: MagicBridge no conectado
+  Ejecutar VI → Wait →
+  Salida: puerto_detectado = "", encontrado = FALSE
+  Indicador LED: Rojo
+  Mensaje: "MagicBridge no detectado. Verificar conexión USB."
+
+Caso 3: Linux (/dev/ttyACM0)
+  Ejecutar VI → Wait →
+  Salida: puerto_detectado = "/dev/ttyACM0", encontrado = TRUE
+  Indicador LED: Verde
+  Mensaje: "Dispositivo encontrado en /dev/ttyACM0"
+
+VALORES DE PRUEBA:
+------------------
+
+Windows:
+  Esperado: "COM3", "COM4", "COM5", etc.
+
+Linux:
+  Esperado: "/dev/ttyACM0", "/dev/ttyACM1", etc.
+
+macOS:
+  Esperado: "/dev/cu.usbmodem1234", etc.
+
+No encontrado:
+  Esperado: "NOT_FOUND" → convertir a "" y encontrado=FALSE
+
+INTEGRACIÓN CON OTROS VIs:
+--------------------------
+
+Este VI se puede usar como subVI en aplicaciones más grandes:
+
+Ejemplo:
+┌────────────────────────────────────┐
+│ [DetectarPuerto.vi]                │
+│         ↓                          │
+│   puerto_detectado                 │
+│         ↓                          │
+│ [IF encontrado?] ──NO──→ [Error]  │
+│         ↓ SÍ                       │
+│ [CargarDatos.vi] ← puerto          │
+│         ↓                          │
+│ [ProgramarChip.vi]                 │
+└────────────────────────────────────┘
+
+OPTIMIZACIONES:
+---------------
+
+1. Cache del puerto detectado
+   - Guardar en variable global
+   - Re-detectar solo si cambia hardware
+
+2. Polling automático
+   - Usar loop con delay
+   - Re-detectar cada N segundos
+   - Útil para hot-plug
+
+3. Notificaciones
+   - Event structure para cambios
+   - Sound o visual alert cuando detectado
+
+ARCHIVOS NECESARIOS:
+--------------------
+
+Python Scripts:
+  - C:\MagicBridge\bin\detect_port.py (script principal)
+  - Python 3.6+ instalado en el sistema
+  - pyserial library instalada
+
+NOTAS IMPORTANTES:
+------------------
+
+1. En Windows, asegurarse que Python esté en PATH
+   Panel de Control → Sistema → Variables de entorno → PATH
+
+2. En Linux, usuario debe estar en grupo 'dialout'
+   sudo usermod -a -G dialout $USER
+
+3. El script detect_port.py busca VID:PID 1d50:6015
+   Este es el descriptor USB del MagicBridge
+
+4. Si múltiples MagicBridge conectados, retorna el primero encontrado
+
+5. Tiempo de ejecución típico: <1 segundo
+
+TROUBLESHOOTING:
+----------------
+
+Problema: Siempre retorna "NOT_FOUND"
+Solución:
+  1. Verificar cable USB (debe ser de datos, no solo carga)
+  2. Verificar en Device Manager (Windows) que aparece el dispositivo
+  3. Ejecutar lsusb en Linux para verificar VID:PID
+  4. Reflashear firmware si descriptores USB incorrectos
+
+Problema: Exit code != 0
+Solución:
+  1. Verificar que Python esté instalado: python --version
+  2. Verificar que pyserial esté instalado: pip list | grep serial
+  3. Verificar ruta absoluta del script
+  4. Revisar stderr para mensaje de error específico
+
+Problema: Timeout
+Solución:
+  1. Aumentar timeout de System Exec (de 5000 a 10000 ms)
+  2. Verificar que sistema no esté sobrecargado
+  3. Cerrar otros programas que usen puerto serial
+
+REFERENCIAS:
+------------
+
+Documentación relacionada:
+  - ../docs/INTEGRACION_LABVIEW.md
+  - ../examples/EJEMPLO_PASO_A_PASO.md
+  - ../python_wrappers/detect_port.py (código fuente)
+
+Siguiente ejemplo:
+  - Ejemplo_2_CargarDatos.txt
+
+================================================================================
+FIN DEL EJEMPLO 1
+================================================================================

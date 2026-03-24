@@ -1,0 +1,551 @@
+================================================================================
+EJEMPLO 2: CARGAR DATOS HMF AL MAGICBRIDGE
+================================================================================
+
+DESCRIPCIÓN:
+------------
+Este VI carga un archivo HMF al MagicBridge. Los datos se cargan una sola vez
+y permanecen en memoria para programar múltiples chips sin recargar.
+
+ENTRADAS:
+  - Ruta archivo HMF (string): Ruta completa al archivo .hmf
+  - Puerto COM (string): Puerto serial (ej: "COM3", "/dev/ttyACM0")
+  - PCB (numeric): Número de PCB (3, 5, o 6)
+  - Variante (string): Variante del chip ("A", "B", "C", o "D")
+  - Timeout (numeric): Timeout en segundos (default: 300)
+
+SALIDAS:
+  - Éxito (boolean): TRUE si carga exitosa
+  - Total registros (numeric): Número de registros cargados
+  - Registros exitosos (numeric): Registros cargados correctamente
+  - Registros fallidos (numeric): Registros que fallaron
+  - Duración (numeric): Tiempo de carga en segundos
+  - Mensaje (string): Mensaje de status o error
+  - JSON completo (string): Respuesta JSON completa
+
+FRONT PANEL:
+------------
+
+Controles:
+  - [Path] Archivo HMF: Selector de archivo con filtro "*.hmf"
+  - [String] Puerto COM: Combo box con puertos disponibles
+  - [Numeric] PCB: Ring selector (3, 5, 6)
+  - [String] Variante: Ring selector (A, B, C, D)
+  - [Numeric] Timeout (seg): Numérico con default 300
+  - [Button] Cargar Datos: Botón para iniciar carga
+  - [Button] Cancelar: Botón para cancelar operación
+
+Indicadores:
+  - [LED Boolean] Estado Carga: Verde=OK, Rojo=Error
+  - [Progress Bar] Progreso: Barra de progreso 0-100%
+  - [Numeric] Registros Cargados: Contador
+  - [Numeric] Total Registros: Total esperado
+  - [Numeric] Tiempo Transcurrido: Segundos
+  - [String] Mensaje Status: Estado actual de la operación
+  - [Text Box] Log: Registro detallado de la operación
+
+Layout recomendado:
+┌──────────────────────────────────────────────────────────────┐
+│  CARGAR DATOS HMF AL MAGICBRIDGE                             │
+├──────────────────────────────────────────────────────────────┤
+│                                                               │
+│  Archivo HMF: [C:\Data\Ford_MACH_E_R018.hmf     ] [Browse]   │
+│                                                               │
+│  Puerto COM:  [COM3        ▼] PCB: [5 ▼] Variante: [D ▼]    │
+│                                                               │
+│  Timeout:     [300         ] segundos                        │
+│                                                               │
+│  ┌─────────────────────────────────────────────────────────┐ │
+│  │  Estado: ● Cargando datos...                            │ │
+│  │                                                          │ │
+│  │  Progreso: [████████████░░░░░░░░░░] 60%                │ │
+│  │                                                          │ │
+│  │  Registros: 456 / 759                                   │ │
+│  │  Tiempo: 4.2 segundos                                   │ │
+│  └─────────────────────────────────────────────────────────┘ │
+│                                                               │
+│  Log de operación:                                           │
+│  ┌─────────────────────────────────────────────────────────┐ │
+│  │ Iniciando carga de datos...                             │ │
+│  │ Archivo: Ford_MACH_E_R018.hmf                           │ │
+│  │ Puerto: COM3, PCB: 5, Variante: D                       │ │
+│  │ Cargando registro 456/759...                            │ │
+│  │                                                          │ │
+│  └─────────────────────────────────────────────────────────┘ │
+│                                                               │
+│  [Cargar Datos]  [Cancelar]                                  │
+│                                                               │
+└──────────────────────────────────────────────────────────────┘
+
+BLOCK DIAGRAM (Pseudocódigo):
+-----------------------------
+
+1. Validar entradas
+   IF archivo_hmf NO existe THEN
+      mensaje = "Error: Archivo HMF no encontrado"
+      exito = FALSE
+      RETURN
+   END IF
+
+   IF puerto_com vacío THEN
+      mensaje = "Error: Puerto COM no especificado"
+      exito = FALSE
+      RETURN
+   END IF
+
+   IF pcb NOT IN [3, 5, 6] THEN
+      mensaje = "Error: PCB debe ser 3, 5, o 6"
+      exito = FALSE
+      RETURN
+   END IF
+
+   IF variante NOT IN ["A", "B", "C", "D"] THEN
+      mensaje = "Error: Variante debe ser A, B, C, o D"
+      exito = FALSE
+      RETURN
+   END IF
+
+2. Preparar comando
+   json_output = "C:\Temp\magicbridge_load_" + timestamp + ".json"
+
+   comando = "python"
+   argumentos = BuildString(
+      "C:\MagicBridge\bin\magicbridge-load.bat ",
+      archivo_hmf, " ",
+      puerto_com, " ",
+      ToString(pcb), " ",
+      variante, " ",
+      "--json ", json_output,
+      " --timeout ", ToString(timeout)
+   )
+
+3. Configurar System Exec.vi
+   ┌──────────────────────────────────────┐
+   │ System Exec.vi                       │
+   ├──────────────────────────────────────┤
+   │ Command Line: comando                │
+   │ Arguments: argumentos                │
+   │ Working Dir: "C:\MagicBridge\bin\"   │
+   │ Wait: TRUE                           │
+   │ Timeout: timeout * 1000 ms           │
+   └──────────────────────────────────────┘
+
+4. Ejecutar con feedback visual
+   Iniciar Timer
+   Actualizar LED Status = "Cargando..."
+
+   Ejecutar System Exec (en loop con polling)
+
+   WHILE System Exec ejecutando DO
+      elapsed = Timer - Start
+      Actualizar "Tiempo Transcurrido" = elapsed
+      Actualizar Progress Bar (indeterminado o basado en stdout)
+      Wait 100 ms
+   END WHILE
+
+5. Capturar resultado
+   stdout → salida_estandar
+   stderr → salida_error
+   exit_code → codigo_salida
+   elapsed_time → duracion
+
+6. Leer archivo JSON
+   IF FileExists(json_output) THEN
+      json_string = ReadTextFile(json_output)
+      json_data = ParseJSON(json_string)
+
+      // Extraer campos del JSON
+      exito = json_data["success"]
+      total_registros = json_data["total_entries"]
+      registros_exitosos = json_data["successful"]
+      registros_fallidos = json_data["failed"]
+      duracion = json_data["duration"]
+
+      IF exito == TRUE THEN
+         mensaje = BuildString(
+            "Carga exitosa: ",
+            ToString(registros_exitosos), "/",
+            ToString(total_registros), " registros en ",
+            ToString(duracion), " segundos"
+         )
+      ELSE
+         mensaje = "Error durante carga: " + json_data["error"]
+      END IF
+   ELSE
+      // JSON no generado, usar exit code
+      IF codigo_salida == 0 THEN
+         exito = TRUE
+         mensaje = "Carga completada (JSON no disponible)"
+      ELSE
+         exito = FALSE
+         mensaje = "Error: " + salida_error
+      END IF
+   END IF
+
+7. Actualizar indicadores
+   "Estado Carga" LED → exito
+   "Registros Cargados" → registros_exitosos
+   "Total Registros" → total_registros
+   "Tiempo Transcurrido" → duracion
+   "Mensaje Status" → mensaje
+   "Progress Bar" → 100% si exito, 0% si error
+
+   Append to Log:
+      timestamp + ": " + mensaje
+
+8. Cleanup
+   Delete temporary JSON file (opcional)
+
+9. Retornar valores
+   Output: exito, total_registros, registros_exitosos,
+           registros_fallidos, duracion, mensaje, json_string
+
+DIAGRAMA DE FLUJO:
+------------------
+
+[Inicio]
+   ↓
+[Validar entradas] ──ERROR──→ [Mostrar error] → [Fin]
+   ↓ OK
+[Preparar comando y argumentos]
+   ↓
+[Crear archivo JSON temporal]
+   ↓
+[Iniciar Timer y UI feedback]
+   ↓
+[Ejecutar System Exec]
+   ↓
+[Loop: Actualizar progreso]
+   ↓
+[Capturar exit code y outputs]
+   ↓
+[Archivo JSON existe?] ──NO──→ [Parsear stdout/stderr]
+   ↓ SÍ                              ↓
+[Leer y parsear JSON]                 ↓
+   ↓                                  ↓
+[Extraer campos]                      ↓
+   ↓                                  ↓
+   └──────────────┬───────────────────┘
+                  ↓
+   [success == TRUE?] ──NO──→ [exito = FALSE]
+         ↓ SÍ                      ↓
+   [exito = TRUE]                  ↓
+         ↓                         ↓
+         └─────────────────────────┘
+                  ↓
+   [Actualizar indicadores]
+                  ↓
+   [Agregar a log]
+                  ↓
+   [Cleanup archivos temp]
+                  ↓
+              [Retornar]
+                  ↓
+                [Fin]
+
+CONFIGURACIÓN DETALLADA DE SYSTEM EXEC:
+---------------------------------------
+
+Block Diagram:
+┌────────────────────────────────────────────────────────────┐
+│                                                            │
+│  "python" ──────────────────→ [command line]              │
+│                                      │                     │
+│  BuildString(────────────────→ [arguments]                │
+│    "C:\...\magicbridge-load.bat ",   │                    │
+│    archivo_hmf, " ",                 │                    │
+│    puerto_com, " ",                  │                    │
+│    pcb, " ",                         │                    │
+│    variante,                         │                    │
+│    " --json ", json_file,            │                    │
+│    " --timeout ", timeout)           │                    │
+│                                      │                    │
+│  "C:\MagicBridge\bin\" ──────→ [working dir]             │
+│                                      │                    │
+│  TRUE ───────────────────────→ [wait until completion]    │
+│                                      │                    │
+│  timeout*1000 ───────────────→ [timeout ms]              │
+│                                      │                    │
+│                        [System Exec.vi]                   │
+│                                      │                    │
+│           ┌──────────────────────────┼───────────────┐   │
+│           ↓                          ↓               ↓   │
+│      [stdout]                  [exit code]      [stderr] │
+│           │                          │               │   │
+│           ↓                          ↓               ↓   │
+│    [Parse output]           [Check == 0]    [Error msg] │
+│                                                           │
+└───────────────────────────────────────────────────────────┘
+
+PARSING DE JSON:
+----------------
+
+Método 1: Unflatten From JSON (LabVIEW 2013+)
+
+1. Leer archivo JSON como string
+2. Crear typedef cluster con estructura:
+   ┌──────────────────────────────────┐
+   │ Cluster: LoadResult              │
+   ├──────────────────────────────────┤
+   │ - success (Boolean)              │
+   │ - command (String)               │
+   │ - port (String)                  │
+   │ - timestamp (String)             │
+   │ - duration (Double)              │
+   │ - total_entries (I32)            │
+   │ - successful (I32)               │
+   │ - failed (I32)                   │
+   │ - error (String)                 │
+   └──────────────────────────────────┘
+
+3. Usar Unflatten From JSON.vi
+   JSON String → [Unflatten From JSON] → Cluster
+
+4. Acceder a campos del cluster
+   cluster.success → Boolean
+   cluster.total_entries → I32
+   etc.
+
+Método 2: JKI JSON Toolkit (recomendado para versiones antiguas)
+
+1. Instalar JKI JSON desde VI Package Manager
+2. Usar Parse JSON.vi
+3. Acceder a valores por clave:
+   json_object → Get Value("success") → Boolean
+   json_object → Get Value("total_entries") → Number
+
+MANEJO DE ERRORES:
+------------------
+
+Error 1: Archivo HMF no encontrado
+  Exit code: 1
+  Mensaje: "Error: Archivo HMF no encontrado: [ruta]"
+  Acción: Verificar ruta, mostrar file dialog
+
+Error 2: Puerto COM no disponible
+  Exit code: 2
+  Mensaje: "Error: No se puede abrir puerto [puerto]"
+  Acción: Re-detectar puerto, verificar conexión
+
+Error 3: Timeout durante carga
+  Exit code: 3
+  Mensaje: "Error: Timeout después de [N] segundos"
+  Acción: Aumentar timeout, verificar cable USB
+
+Error 4: Error de formato HMF
+  Exit code: 1
+  Mensaje: "Error: Formato de archivo HMF inválido"
+  Acción: Verificar archivo HMF, usar otro archivo
+
+Error 5: Comunicación serial fallida
+  Exit code: 2
+  Mensaje: "Error: Fallo en comunicación serial"
+  Acción: Reconectar MagicBridge, verificar drivers
+
+EJEMPLO DE USO:
+---------------
+
+Caso 1: Carga exitosa
+  Inputs:
+    archivo_hmf = "C:\Data\Ford_MACH_E_R018.hmf"
+    puerto_com = "COM3"
+    pcb = 5
+    variante = "D"
+    timeout = 300
+
+  Ejecutar VI → Wait 6-7 segundos →
+
+  Outputs:
+    exito = TRUE
+    total_registros = 759
+    registros_exitosos = 759
+    registros_fallidos = 0
+    duracion = 6.7
+    mensaje = "Carga exitosa: 759/759 registros en 6.7 segundos"
+
+  LED: Verde
+  Progress Bar: 100%
+
+Caso 2: Archivo no encontrado
+  Inputs:
+    archivo_hmf = "C:\Data\noexiste.hmf"
+    ...
+
+  Ejecutar VI → Inmediato →
+
+  Outputs:
+    exito = FALSE
+    mensaje = "Error: Archivo HMF no encontrado"
+
+  LED: Rojo
+  Progress Bar: 0%
+
+Caso 3: Timeout
+  Inputs:
+    timeout = 10  (muy corto para 759 registros)
+    ...
+
+  Ejecutar VI → Wait 10 segundos →
+
+  Outputs:
+    exito = FALSE
+    mensaje = "Error: Timeout después de 10 segundos"
+
+  LED: Rojo
+  Progress Bar: Parcial
+
+VALORES RECOMENDADOS:
+---------------------
+
+Timeout:
+  - Archivos pequeños (<100 registros): 60 segundos
+  - Archivos medianos (100-500): 180 segundos
+  - Archivos grandes (>500): 300 segundos
+  - Default seguro: 300 segundos (5 minutos)
+
+Formato archivo HMF:
+  - Líneas con formato: ADDR:XXXX,DATA:YYYYYYYY
+  - XXXX = 4 dígitos hexadecimales (dirección)
+  - YYYYYYYY = 8 dígitos hexadecimales (datos)
+  - Ejemplo: ADDR:0000,DATA:A5B3C2D1
+
+PCB y Variantes:
+  - PCB 3: Dirección I2C 0x01, variantes A/B/C/D
+  - PCB 5: Dirección I2C 0x03, variantes A/B/C/D
+  - PCB 6: Dirección I2C 0x02, variantes A/B/C/D
+
+OPTIMIZACIONES:
+---------------
+
+1. Progress feedback en tiempo real
+   - Parsear stdout durante ejecución
+   - Buscar línea "Cargando registro X/Y"
+   - Actualizar progress bar: (X/Y)*100
+
+2. Cancelación de operación
+   - Implementar botón "Cancelar"
+   - Terminar proceso System Exec
+   - Cleanup y reset estado
+
+3. Historial de archivos recientes
+   - Guardar últimos 5 archivos HMF usados
+   - Dropdown con historial
+   - Reload rápido
+
+4. Validación pre-carga
+   - Verificar formato HMF antes de enviar
+   - Contar registros esperados
+   - Estimar tiempo de carga
+
+INTEGRACIÓN CON OTROS VIs:
+--------------------------
+
+Secuencia típica de producción:
+
+┌────────────────────────────────────────┐
+│ [DetectarPuerto.vi]                    │
+│         ↓                              │
+│   puerto_com                           │
+│         ↓                              │
+│ [CargarDatos.vi] ← archivo_hmf         │
+│         ↓                              │
+│   exito, registros_cargados            │
+│         ↓                              │
+│ [IF exito?] ──NO──→ [Mostrar Error]   │
+│         ↓ SÍ                           │
+│ [LOOP: Por cada chip]                  │
+│    │                                   │
+│    ├─→ [ProgramarChip.vi]             │
+│    │         ↓                         │
+│    ├─→ [VerificarChip.vi]             │
+│    │         ↓                         │
+│    └─→ [IF OK] → Chip siguiente       │
+│              │                         │
+│              └─→ [Estadísticas]       │
+└────────────────────────────────────────┘
+
+ARCHIVOS NECESARIOS:
+--------------------
+
+Scripts Python:
+  - C:\MagicBridge\bin\magicbridge-load.bat (wrapper Windows)
+  - C:\MagicBridge\bin\1_cargar_datos_v3.cpython-312.pyc (bytecode)
+  - Python 3.6+ instalado
+  - pyserial library
+
+Archivos de datos:
+  - Archivo HMF válido
+  - Espacio en C:\Temp\ para JSON temporal
+
+NOTAS IMPORTANTES:
+------------------
+
+1. Solo necesitas cargar datos UNA vez
+   - Los datos permanecen en RAM del MagicBridge
+   - Puedes programar múltiples chips sin recargar
+   - Recargar solo si cambias de archivo HMF
+
+2. Tiempo de carga depende del tamaño
+   - ~760 registros: 6-7 segundos
+   - Velocidad: ~110 registros/segundo
+   - Limitado por velocidad serial (115200 baud)
+
+3. Validación automática de CRC
+   - Cada registro es validado al cargar
+   - Si falla validación, operación se detiene
+   - Revisar integridad del archivo HMF
+
+4. JSON output es opcional pero recomendado
+   - Proporciona información estructurada
+   - Fácil de parsear en LabVIEW
+   - Útil para logging y troubleshooting
+
+TROUBLESHOOTING:
+----------------
+
+Problema: "Archivo HMF no encontrado"
+Solución:
+  1. Verificar ruta completa es correcta
+  2. Verificar permisos de lectura del archivo
+  3. Usar File Path control con browse
+
+Problema: "Timeout después de X segundos"
+Solución:
+  1. Aumentar timeout (60 → 180 → 300)
+  2. Verificar cable USB (usar cable corto <2m)
+  3. Cerrar otros programas que usen puerto serial
+  4. Verificar que MagicBridge responde
+
+Problema: "Registros fallidos > 0"
+Solución:
+  1. Verificar integridad del archivo HMF
+  2. Verificar formato correcto de cada línea
+  3. Re-generar archivo HMF desde fuente
+  4. Reflashear firmware MagicBridge
+
+Problema: Progress bar no se actualiza
+Solución:
+  1. Implementar loop con polling de stdout
+  2. Usar Wait ms entre lecturas
+  3. Parsear output en tiempo real
+
+REFERENCIAS:
+------------
+
+Documentación relacionada:
+  - ../docs/INTEGRACION_LABVIEW.md (Sección 4: Implementación System Exec)
+  - ../examples/EJEMPLO_PASO_A_PASO.md (Ejemplo 2)
+  - ../bin/magicbridge-load.bat (script wrapper)
+
+Scripts relacionados:
+  - 1_cargar_datos_v3.py (código fuente en MagicBridge_Release_v1.0)
+
+Ejemplo anterior:
+  - Ejemplo_1_DetectarPuerto.txt
+
+Siguiente ejemplo:
+  - Ejemplo_3_ProgramarChip.txt
+
+================================================================================
+FIN DEL EJEMPLO 2
+================================================================================

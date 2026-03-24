@@ -1,0 +1,813 @@
+================================================================================
+EJEMPLO 4: APLICACIÓN COMPLETA DE PRODUCCIÓN
+================================================================================
+
+DESCRIPCIÓN:
+------------
+Este es un VI completo para producción que integra todos los componentes
+anteriores en una aplicación profesional de programación de chips ELMOS.
+
+Incluye:
+- Detección automática de puerto
+- Carga de datos HMF
+- Programación en loop continuo
+- Verificación automática
+- Estadísticas en tiempo real
+- Logging a archivo y base de datos (opcional)
+- UI profesional con feedback visual
+- Manejo robusto de errores
+- Control de calidad automático
+
+ARQUITECTURA DE LA APLICACIÓN:
+------------------------------
+
+┌────────────────────────────────────────────────────────────┐
+│ MAIN VI: AplicacionProduccion.vi                          │
+├────────────────────────────────────────────────────────────┤
+│                                                            │
+│  [State Machine principal]                                │
+│     │                                                      │
+│     ├─→ Estado INIT: Inicialización                      │
+│     ├─→ Estado DETECTAR: Buscar MagicBridge              │
+│     ├─→ Estado CARGAR_HMF: Cargar datos                  │
+│     ├─→ Estado ESPERAR_CHIP: Sensor de presencia         │
+│     ├─→ Estado PROGRAMAR: Programar chip                 │
+│     ├─→ Estado VERIFICAR: Verificar programación         │
+│     ├─→ Estado RESULTADO: Clasificar PASS/FAIL           │
+│     ├─→ Estado LOG: Registrar en BD                      │
+│     ├─→ Estado ERROR: Manejo de errores                  │
+│     └─→ Estado STOP: Finalizar aplicación                │
+│                                                            │
+│  [Sub-VIs utilizados]                                     │
+│     ├─→ DetectarPuerto.vi                                │
+│     ├─→ CargarDatos.vi                                    │
+│     ├─→ ProgramarChip.vi                                  │
+│     ├─→ Estadisticas.vi                                   │
+│     └─→ Logger.vi                                         │
+└────────────────────────────────────────────────────────────┘
+
+FRONT PANEL COMPLETO:
+--------------------
+
+┌─────────────────────────────────────────────────────────────────────┐
+│  SISTEMA DE PROGRAMACIÓN MAGICBRIDGE - LÍNEA DE PRODUCCIÓN         │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  ┌───────────────── CONFIGURACIÓN ──────────────────────┐          │
+│  │                                                        │          │
+│  │  Archivo HMF: [C:\Data\Ford_MACH_E.hmf] [Browse]     │          │
+│  │                                                        │          │
+│  │  Puerto COM: [COM3 ▼]  Auto-detectar: ☑              │          │
+│  │                                                        │          │
+│  │  PCB: [5 ▼]  Variante: [D ▼]                         │          │
+│  │                                                        │          │
+│  │  Verificar cada chip: ☑  Timeout: [120] seg          │          │
+│  │                                                        │          │
+│  │  [Cargar HMF]  [Iniciar Producción]  [Detener]       │          │
+│  │                                                        │          │
+│  └────────────────────────────────────────────────────────┘          │
+│                                                                      │
+│  ┌───────────────── ESTADO ACTUAL ──────────────────────┐          │
+│  │                                                        │          │
+│  │  Sistema: ● PROGRAMANDO CHIP                          │          │
+│  │                                                        │          │
+│  │  MagicBridge:  ● Conectado (COM3)                     │          │
+│  │  Datos HMF:    ● Cargados (759 registros)             │          │
+│  │  Chip actual:  ● En proceso                           │          │
+│  │                                                        │          │
+│  │  Operación actual:                                     │          │
+│  │  [████████████████░░░░░] 75%                          │          │
+│  │  Programando chip... 25.3 seg                         │          │
+│  │                                                        │          │
+│  │  Último resultado: CRC: A5B3 - PASS ✓                │          │
+│  │                                                        │          │
+│  └────────────────────────────────────────────────────────┘          │
+│                                                                      │
+│  ┌──────────────── ESTADÍSTICAS ────────────────────────┐          │
+│  │                                                        │          │
+│  │  ┌─────────────┬──────────┬──────────┬──────────┐   │          │
+│  │  │ Descripción │  Actual  │   Hoy    │  Total   │   │          │
+│  │  ├─────────────┼──────────┼──────────┼──────────┤   │          │
+│  │  │ Programados │    45    │   142    │  1,247   │   │          │
+│  │  │ Exitosos    │    43    │   138    │  1,205   │   │          │
+│  │  │ Fallidos    │     2    │     4    │    42    │   │          │
+│  │  │ Tasa éxito  │  95.6%   │  97.2%   │  96.6%   │   │          │
+│  │  └─────────────┴──────────┴──────────┴──────────┘   │          │
+│  │                                                        │          │
+│  │  Tiempo promedio: 62.5 seg/chip                       │          │
+│  │  Throughput: 8.2 chips/minuto                         │          │
+│  │                                                        │          │
+│  │  Tiempo de turno: 02:45:32                            │          │
+│  │  Proyección fin turno: 14:30 (142/200 chips)         │          │
+│  │                                                        │          │
+│  └────────────────────────────────────────────────────────┘          │
+│                                                                      │
+│  ┌────────────────── LOG DE EVENTOS ────────────────────┐          │
+│  │                                                        │          │
+│  │  14:25:32 - Chip #45 - PCB 5 var D - PASS - A5B3     │          │
+│  │  14:24:18 - Chip #44 - PCB 5 var D - PASS - A5B3     │          │
+│  │  14:23:05 - Chip #43 - PCB 5 var D - FAIL - CRC err  │          │
+│  │  14:22:42 - Chip #42 - PCB 5 var D - PASS - A5B3     │          │
+│  │  14:21:30 - Chip #41 - PCB 5 var D - PASS - A5B3     │          │
+│  │                                                        │          │
+│  │  [Exportar Log]  [Limpiar]                            │          │
+│  │                                                        │          │
+│  └────────────────────────────────────────────────────────┘          │
+│                                                                      │
+│  ┌──────────────── ALARMAS Y ALERTAS ───────────────────┐          │
+│  │                                                        │          │
+│  │  ⚠ Tasa de fallo aumentó a 4.4% en últimos 10 chips │          │
+│  │                                                        │          │
+│  │  [Reconocer Alarma]                                   │          │
+│  │                                                        │          │
+│  └────────────────────────────────────────────────────────┘          │
+│                                                                      │
+│  Status: Sistema operando normalmente                               │
+│                                                                      │
+└─────────────────────────────────────────────────────────────────────┘
+
+CONTROLES PRINCIPALES:
+---------------------
+
+Configuración:
+  - [Path] Archivo HMF
+  - [String] Puerto COM (con auto-detect)
+  - [Numeric] PCB (Ring: 3, 5, 6)
+  - [String] Variante (Ring: A, B, C, D)
+  - [Boolean] Verificar cada chip
+  - [Numeric] Timeout (segundos)
+  - [Boolean] Auto-detectar puerto
+
+Comandos:
+  - [Button] Cargar HMF
+  - [Button] Iniciar Producción
+  - [Button] Detener
+  - [Button] Pausa/Reanudar
+  - [Button] Exportar Log
+  - [Button] Reset Estadísticas
+
+INDICADORES PRINCIPALES:
+-----------------------
+
+Estado:
+  - [LED] Sistema (Verde/Amarillo/Rojo)
+  - [LED] MagicBridge conectado
+  - [LED] Datos HMF cargados
+  - [LED] Chip en proceso
+  - [String] Operación actual
+  - [Progress] Barra de progreso
+
+Estadísticas:
+  - [Numeric] Chips programados (actual/hoy/total)
+  - [Numeric] Chips exitosos
+  - [Numeric] Chips fallidos
+  - [Numeric] Tasa de éxito (%)
+  - [Numeric] Tiempo promedio
+  - [Numeric] Throughput (chips/min)
+  - [Time] Tiempo de turno
+  - [String] Proyección fin turno
+
+Log:
+  - [Text Box] Log de eventos (scrollable)
+  - [Array] Tabla de chips procesados
+
+Alarmas:
+  - [Text Box] Mensajes de alarma
+  - [LED] Indicador de alarma activa
+
+BLOCK DIAGRAM - STATE MACHINE:
+------------------------------
+
+typedef enum {
+  INIT,
+  DETECTAR_PUERTO,
+  CARGAR_HMF,
+  ESPERAR_CHIP,
+  PROGRAMAR,
+  VERIFICAR,
+  RESULTADO,
+  LOG_RESULTADO,
+  ERROR,
+  STOP
+} EstadoProduccion;
+
+WHILE (NOT stop_requested) DO
+
+  CASE estado_actual OF
+
+    // ============================================================
+    INIT:
+    // ============================================================
+      Inicializar variables globales
+      chips_programados = 0
+      chips_exitosos = 0
+      chips_fallidos = 0
+      timestamp_inicio = NOW()
+
+      Cargar configuración desde archivo INI (si existe)
+
+      Actualizar UI:
+        Estado Sistema = "Inicializando..."
+        Limpiar log
+
+      siguiente_estado = DETECTAR_PUERTO
+
+    // ============================================================
+    DETECTAR_PUERTO:
+    // ============================================================
+      IF auto_detectar_puerto == TRUE THEN
+        Actualizar Estado = "Detectando MagicBridge..."
+
+        puerto_detectado = DetectarPuerto.vi()
+
+        IF puerto_detectado != "" THEN
+          puerto_com = puerto_detectado
+          LED MagicBridge = Verde
+          Log("MagicBridge detectado en " + puerto_com)
+          siguiente_estado = CARGAR_HMF
+        ELSE
+          LED MagicBridge = Rojo
+          Log("ERROR: MagicBridge no detectado")
+          siguiente_estado = ERROR
+          mensaje_error = "MagicBridge no encontrado. Verificar conexión USB."
+        END IF
+      ELSE
+        // Puerto manual
+        siguiente_estado = CARGAR_HMF
+      END IF
+
+    // ============================================================
+    CARGAR_HMF:
+    // ============================================================
+      Actualizar Estado = "Cargando datos HMF..."
+
+      result = CargarDatos.vi(
+        archivo_hmf,
+        puerto_com,
+        pcb,
+        variante,
+        timeout
+      )
+
+      IF result.exito == TRUE THEN
+        LED Datos HMF = Verde
+        registros_cargados = result.total_registros
+        Log("HMF cargado: " + ToString(registros_cargados) + " registros")
+        siguiente_estado = ESPERAR_CHIP
+      ELSE
+        LED Datos HMF = Rojo
+        Log("ERROR: Fallo al cargar HMF - " + result.mensaje)
+        siguiente_estado = ERROR
+        mensaje_error = result.mensaje
+      END IF
+
+    // ============================================================
+    ESPERAR_CHIP:
+    // ============================================================
+      Actualizar Estado = "Esperando chip en socket..."
+      LED Chip = Amarillo (esperando)
+
+      // Polling de sensor de presencia (si hardware lo soporta)
+      // O simplemente esperar input del operador
+
+      IF chip_detectado OR boton_iniciar_pressed THEN
+        chip_numero = chips_programados + 1
+        timestamp_chip_inicio = NOW()
+        Log("Chip #" + ToString(chip_numero) + " detectado, iniciando programación")
+
+        siguiente_estado = PROGRAMAR
+      END IF
+
+      // Permitir detener desde este estado
+      IF boton_detener_pressed THEN
+        siguiente_estado = STOP
+      END IF
+
+      Wait 100 ms  // Evitar busy loop
+
+    // ============================================================
+    PROGRAMAR:
+    // ============================================================
+      Actualizar Estado = "Programando chip #" + ToString(chip_numero)
+      LED Chip = Amarillo (procesando)
+      Progress Bar = Indeterminado
+
+      result_write = ProgramarChip.vi(
+        puerto_com,
+        pcb,
+        variante,
+        FALSE,  // No verificar aún
+        timeout
+      )
+
+      duracion_programacion = NOW() - timestamp_chip_inicio
+
+      IF result_write.exito == TRUE THEN
+        crc_programacion = result_write.crc
+        Log("Programación OK - CRC: " + crc_programacion + " - " +
+            ToString(duracion_programacion) + " seg")
+
+        IF verificar_cada_chip == TRUE THEN
+          siguiente_estado = VERIFICAR
+        ELSE
+          // Asumir éxito sin verificar
+          resultado_chip = TRUE
+          siguiente_estado = RESULTADO
+        END IF
+      ELSE
+        Log("ERROR en programación: " + result_write.mensaje)
+        resultado_chip = FALSE
+        siguiente_estado = RESULTADO
+      END IF
+
+    // ============================================================
+    VERIFICAR:
+    // ============================================================
+      Actualizar Estado = "Verificando chip #" + ToString(chip_numero)
+
+      result_read = ProgramarChip.vi(
+        puerto_com,
+        pcb,
+        variante,
+        TRUE,  // Solo verificar (reutilizando el VI)
+        timeout
+      )
+
+      duracion_verificacion = NOW() - timestamp_chip_inicio - duracion_programacion
+
+      IF result_read.exito == TRUE THEN
+        crc_verificacion = result_read.crc
+
+        IF crc_programacion == crc_verificacion THEN
+          Log("Verificación OK - CRC coincide: " + crc_verificacion + " - " +
+              ToString(duracion_verificacion) + " seg")
+          resultado_chip = TRUE
+        ELSE
+          Log("ERROR: CRC no coincide - Write: " + crc_programacion +
+              ", Read: " + crc_verificacion)
+          resultado_chip = FALSE
+        END IF
+      ELSE
+        Log("ERROR en verificación: " + result_read.mensaje)
+        resultado_chip = FALSE
+      END IF
+
+      siguiente_estado = RESULTADO
+
+    // ============================================================
+    RESULTADO:
+    // ============================================================
+      duracion_total = NOW() - timestamp_chip_inicio
+
+      chips_programados = chips_programados + 1
+
+      IF resultado_chip == TRUE THEN
+        chips_exitosos = chips_exitosos + 1
+        LED Chip = Verde
+        estado_texto = "PASS ✓"
+        // Activar salida digital para bandeja OK (si hardware)
+        Log("Chip #" + ToString(chip_numero) + " - PASS - " +
+            ToString(duracion_total) + " seg")
+      ELSE
+        chips_fallidos = chips_fallidos + 1
+        LED Chip = Rojo
+        estado_texto = "FAIL ✗"
+        // Activar salida digital para bandeja FAIL (si hardware)
+        Log("Chip #" + ToString(chip_numero) + " - FAIL")
+
+        // Verificar si tasa de fallo es alta
+        IF chips_fallidos > 0 THEN
+          tasa_fallo = (chips_fallidos / chips_programados) * 100
+          IF tasa_fallo > 10 THEN
+            Alarma("Tasa de fallo alta: " + ToString(tasa_fallo) + "%")
+          END IF
+        END IF
+      END IF
+
+      // Actualizar estadísticas
+      tasa_exito = (chips_exitosos / chips_programados) * 100
+      tiempo_promedio = (NOW() - timestamp_inicio) / chips_programados
+      throughput = 60 / tiempo_promedio  // chips por minuto
+
+      Actualizar indicadores UI:
+        "Chips programados" = chips_programados
+        "Chips exitosos" = chips_exitosos
+        "Chips fallidos" = chips_fallidos
+        "Tasa de éxito" = tasa_exito
+        "Tiempo promedio" = tiempo_promedio
+        "Throughput" = throughput
+
+      siguiente_estado = LOG_RESULTADO
+
+    // ============================================================
+    LOG_RESULTADO:
+    // ============================================================
+      // Guardar en archivo de log
+      log_line = BuildString(
+        Timestamp(),
+        ",Chip#", ToString(chip_numero),
+        ",PCB", ToString(pcb),
+        ",Var", variante,
+        ",", estado_texto,
+        ",CRC:", crc_programacion,
+        ",Duracion:", ToString(duracion_total),
+        "\n"
+      )
+
+      AppendToFile("C:\Logs\produccion_" + TODAY() + ".csv", log_line)
+
+      // Opcional: Guardar en base de datos
+      IF database_enabled THEN
+        InsertToDB(
+          chip_numero,
+          pcb,
+          variante,
+          resultado_chip,
+          crc_programacion,
+          duracion_total,
+          timestamp_chip_inicio
+        )
+      END IF
+
+      siguiente_estado = ESPERAR_CHIP
+
+    // ============================================================
+    ERROR:
+    // ============================================================
+      Actualizar Estado = "ERROR: " + mensaje_error
+      LED Sistema = Rojo
+
+      Display Dialog:
+        "ERROR"
+        mensaje_error
+        "¿Reintentar?"
+        [Sí] [No] [Detener]
+
+      user_choice = Dialog.WaitForResponse()
+
+      IF user_choice == "Sí" THEN
+        siguiente_estado = INIT  // Reiniciar
+      ELSE IF user_choice == "No" THEN
+        siguiente_estado = ESPERAR_CHIP  // Continuar
+      ELSE
+        siguiente_estado = STOP  // Detener
+      END IF
+
+    // ============================================================
+    STOP:
+    // ============================================================
+      Actualizar Estado = "Deteniendo producción..."
+
+      // Guardar estadísticas finales
+      SaveToFile("estadisticas_" + Timestamp() + ".txt")
+
+      // Generar reporte de turno
+      GenerarReporteTurno()
+
+      Log("Producción detenida. Total: " + ToString(chips_programados) +
+          " chips (" + ToString(chips_exitosos) + " OK, " +
+          ToString(chips_fallidos) + " FAIL)")
+
+      stop_requested = TRUE  // Salir del loop principal
+
+  END CASE
+
+  estado_actual = siguiente_estado
+
+  // Actualizar timestamp
+  Actualizar "Tiempo de turno" = NOW() - timestamp_inicio
+
+  Wait 10 ms  // Pequeño delay para no sobrecargar CPU
+
+END WHILE
+
+// Cleanup final
+Log("Aplicación finalizada")
+LED Sistema = Gris
+
+FUNCIONES AUXILIARES:
+--------------------
+
+FUNCIÓN InsertToDB:
+-------------------
+INPUT: chip_numero, pcb, variante, resultado, crc, duracion, timestamp
+OUTPUT: success (boolean)
+
+// Ejemplo con SQL (si tienes Database Connectivity Toolkit)
+connection = OpenDatabaseConnection("DSN=Produccion")
+
+query = BuildSQL(
+  "INSERT INTO chips_programados ",
+  "(chip_num, pcb, variante, resultado, crc, duracion, timestamp) ",
+  "VALUES (?, ?, ?, ?, ?, ?, ?)"
+)
+
+success = ExecuteSQL(
+  connection,
+  query,
+  chip_numero, pcb, variante, resultado, crc, duracion, timestamp
+)
+
+CloseDatabaseConnection(connection)
+
+RETURN success
+
+FUNCIÓN GenerarReporteTurno:
+----------------------------
+INPUT: (variables globales)
+OUTPUT: archivo_reporte (string)
+
+archivo_reporte = "C:\Reports\Turno_" + Timestamp() + ".html"
+
+html_content = BuildHTML(
+  "<h1>Reporte de Turno - Programación ELMOS</h1>",
+  "<p>Fecha: ", TODAY(), "</p>",
+  "<p>Operador: ", operador_nombre, "</p>",
+  "<p>PCB: ", pcb, " Variante: ", variante, "</p>",
+  "<h2>Estadísticas</h2>",
+  "<table>",
+  "  <tr><td>Total programados:</td><td>", chips_programados, "</td></tr>",
+  "  <tr><td>Exitosos:</td><td>", chips_exitosos, "</td></tr>",
+  "  <tr><td>Fallidos:</td><td>", chips_fallidos, "</td></tr>",
+  "  <tr><td>Tasa de éxito:</td><td>", tasa_exito, "%</td></tr>",
+  "  <tr><td>Tiempo promedio:</td><td>", tiempo_promedio, " seg</td></tr>",
+  "  <tr><td>Throughput:</td><td>", throughput, " chips/min</td></tr>",
+  "</table>",
+  "<h2>Log completo</h2>",
+  "<pre>", log_text, "</pre>"
+)
+
+WriteToFile(archivo_reporte, html_content)
+
+// Abrir en browser
+SystemExec("start " + archivo_reporte)
+
+RETURN archivo_reporte
+
+FUNCIÓN Alarma:
+---------------
+INPUT: mensaje (string)
+OUTPUT: (none)
+
+// Agregar a lista de alarmas
+AgregarAListaAlarmas(mensaje)
+
+// Mostrar en UI
+Actualizar "Alarmas y Alertas" = mensaje
+LED Alarma = Rojo
+
+// Opcional: Sonido
+Beep(1000, 500)  // 1000 Hz, 500 ms
+
+// Opcional: Email/SMS
+IF notificaciones_enabled THEN
+  SendEmail(admin_email, "Alarma Producción", mensaje)
+END IF
+
+MANEJO DE ERRORES ROBUSTO:
+--------------------------
+
+Error Handler Global:
+
+TRY
+  // Código principal
+  ExecuteStateMachine()
+CATCH error
+  Log("ERROR CRÍTICO: " + error.message)
+
+  Display Dialog:
+    "Error Crítico"
+    error.message
+    error.stack_trace
+
+  // Intentar guardar estado
+  TRY
+    SaveEmergencyState()
+  CATCH
+    // Ignorar si no se puede guardar
+  END TRY
+
+  // Preguntar al usuario
+  user_choice = Dialog("¿Reiniciar aplicación?", [Sí, No])
+
+  IF user_choice == "Sí" THEN
+    Restart()
+  ELSE
+    Exit()
+  END IF
+END TRY
+
+CONFIGURACIÓN PERSISTENTE:
+-------------------------
+
+Archivo: config.ini
+
+[General]
+auto_detectar_puerto=1
+verificar_cada_chip=1
+timeout=120
+database_enabled=0
+
+[Paths]
+archivo_hmf=C:\Data\Ford_MACH_E_R018.hmf
+log_directory=C:\Logs
+reports_directory=C:\Reports
+
+[Hardware]
+pcb=5
+variante=D
+
+[Alarmas]
+tasa_fallo_max=10
+notificaciones_enabled=0
+admin_email=admin@example.com
+
+Al iniciar:
+  LoadConfigFromINI("config.ini")
+
+Al cerrar:
+  SaveConfigToINI("config.ini")
+
+INTEGRACIÓN CON HARDWARE ADICIONAL:
+-----------------------------------
+
+1. Sensor de presencia de chip:
+   - Digital Input
+   - Polling cada 100 ms
+   - Debouncing (ignora cambios < 50 ms)
+
+2. Salidas digitales para bandejas:
+   - Digital Output 0: Activar bandeja OK
+   - Digital Output 1: Activar bandeja FAIL
+   - Pulso de 500 ms
+
+3. Luz indicadora:
+   - Verde: Producción OK
+   - Amarillo: Procesando
+   - Rojo: Error
+   - Azul: Esperando
+
+4. Botones físicos:
+   - Botón START/STOP
+   - Botón PAUSE/RESUME
+   - Botón EMERGENCY STOP
+
+OPTIMIZACIONES DE RENDIMIENTO:
+------------------------------
+
+1. Paralelización:
+   - Mientras programa chip N, preparar chip N+1
+   - UI update en thread separado
+
+2. Caché:
+   - Guardar resultado de DetectarPuerto en memoria
+   - Re-detectar solo si falla comunicación
+
+3. Buffer de log:
+   - No escribir a archivo en cada chip
+   - Buffer de 10 entradas, flush cada minuto
+
+4. Base de datos:
+   - Batch inserts (cada 10 chips)
+   - Connection pooling
+
+VALIDACIÓN Y TESTING:
+--------------------
+
+Tests a realizar antes de producción:
+
+1. Test de conectividad:
+   - MagicBridge conecta correctamente
+   - Puerto COM es estable
+
+2. Test de carga HMF:
+   - Archivo se carga sin errores
+   - Todos los registros se validan
+
+3. Test de programación:
+   - 10 chips consecutivos programan OK
+   - CRC siempre coincide
+
+4. Test de estadísticas:
+   - Contadores incrementan correctamente
+   - Cálculos son precisos
+
+5. Test de error recovery:
+   - Desconectar USB durante operación
+   - Chip defectuoso
+   - Timeout
+   - Archivo HMF corrupto
+
+6. Test de alarmas:
+   - Simular alta tasa de fallo
+   - Verificar notificaciones
+
+DESPLIEGUE EN PRODUCCIÓN:
+-------------------------
+
+1. Crear executable (.exe):
+   - Application Builder
+   - Incluir dependencias
+   - Crear instalador
+
+2. Instalación en PC de producción:
+   - Instalar Python + pyserial
+   - Copiar scripts MagicBridge
+   - Configurar paths
+   - Crear shortcuts
+
+3. Capacitación de operadores:
+   - Manual de usuario
+   - Video tutorial
+   - Sesiones de práctica
+
+4. Validación IQ/OQ/PQ:
+   - Installation Qualification
+   - Operational Qualification
+   - Performance Qualification
+
+MANTENIMIENTO Y SOPORTE:
+-----------------------
+
+1. Logs automáticos:
+   - Rotación diaria
+   - Compresión semanal
+   - Backup mensual
+
+2. Monitoreo:
+   - Tasa de éxito diaria
+   - Throughput promedio
+   - Tiempo de inactividad
+
+3. Actualizaciones:
+   - Control de versiones
+   - Changelog
+   - Rollback plan
+
+ARCHIVOS NECESARIOS:
+-------------------
+
+LabVIEW VIs:
+  - AplicacionProduccion.vi (main)
+  - DetectarPuerto.vi (subVI)
+  - CargarDatos.vi (subVI)
+  - ProgramarChip.vi (subVI)
+  - Estadisticas.vi (subVI)
+  - Logger.vi (subVI)
+
+Scripts Python:
+  - magicbridge-load.bat
+  - magicbridge-cmd.bat
+  - detect_port.py
+  - magicbridge_api.py
+
+Archivos de configuración:
+  - config.ini
+  - alarmas.cfg
+
+Directorios:
+  - C:\MagicBridge\bin\
+  - C:\Data\ (archivos HMF)
+  - C:\Logs\ (logs de producción)
+  - C:\Reports\ (reportes de turno)
+
+NOTAS FINALES:
+--------------
+
+Esta aplicación completa representa un sistema de producción profesional.
+Puede ser personalizada según necesidades específicas:
+
+- Agregar más PCBs y variantes
+- Integrar con MES (Manufacturing Execution System)
+- Agregar trazabilidad de serial numbers
+- Implementar control estadístico de procesos (SPC)
+- Integrar con sistema ERP
+
+Para implementación real:
+1. Seguir este pseudocódigo
+2. Crear VIs según especificación
+3. Testear extensivamente
+4. Validar con QA
+5. Desplegar en producción
+
+REFERENCIAS:
+------------
+
+Documentación relacionada:
+  - ../docs/INTEGRACION_LABVIEW.md
+  - ../examples/EJEMPLO_PASO_A_PASO.md
+
+Ejemplos previos:
+  - Ejemplo_1_DetectarPuerto.txt
+  - Ejemplo_2_CargarDatos.txt
+  - Ejemplo_3_ProgramarChip.txt
+
+Scripts relacionados:
+  - Todos los scripts en ../bin/
+
+================================================================================
+FIN DEL EJEMPLO 4 - APLICACIÓN COMPLETA
+================================================================================
+
+Este es el ejemplo más completo que integra todos los componentes en una
+aplicación de producción profesional lista para ambiente industrial.
