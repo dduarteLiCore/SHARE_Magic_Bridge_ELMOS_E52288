@@ -1,0 +1,147 @@
+╔═══════════════════════════════════════════════════════════════╗
+║                                                               ║
+║   MagicBridge ELMOS Programmer - Scripts para WINDOWS        ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
+
+IMPORTANTE: Los archivos .sh son para Linux/Mac.
+           En Windows, usa los archivos .bat
+
+═══════════════════════════════════════════════════════════════
+
+ARCHIVOS DISPONIBLES:
+
+  Para WINDOWS:
+    ✓ ejemplo_basico.bat     - Programar un chip
+    ✓ ejemplo_multiple.bat   - Programar múltiples chips
+
+  Para Linux/Mac:
+    • ejemplo_basico.sh      - Programar un chip
+    • ejemplo_multiple.sh    - Programar múltiples chips
+
+═══════════════════════════════════════════════════════════════
+
+REQUISITOS PREVIOS:
+
+1. Python 3.8 o superior instalado
+   Verificar con: python --version
+
+2. MagicBridge conectado al PC
+   (Aparecerá como "LiCore ELMOS Programmer")
+
+3. Archivo HMF con los datos del chip
+   (Ej: Ford_MACH_E.hmf)
+
+═══════════════════════════════════════════════════════════════
+
+USO BÁSICO - Programar un chip:
+
+1. Abre el símbolo del sistema (CMD) o PowerShell
+
+2. Navega a esta carpeta:
+   cd RUTA\SHARE_Magic_Bridge_ELMOS_E52288\MagicBridge_Protected_Package\examples
+
+3. Ejecuta:
+   ejemplo_basico.bat ARCHIVO.hmf PUERTO
+
+   Ejemplo:
+   ejemplo_basico.bat datos.hmf COM3
+
+NOTA: Para saber qué puerto COM está usando tu MagicBridge:
+      - Abre el Administrador de Dispositivos
+      - Busca "Puertos (COM y LPT)"
+      - Localiza "LiCore ELMOS Programmer (COMx)"
+
+═══════════════════════════════════════════════════════════════
+
+USO AVANZADO - Programar múltiples chips:
+
+1. Abre el símbolo del sistema (CMD) o PowerShell
+
+2. Navega a esta carpeta:
+   cd RUTA\SHARE_Magic_Bridge_ELMOS_E52288\MagicBridge_Protected_Package\examples
+
+3. Ejecuta:
+   ejemplo_multiple.bat ARCHIVO.hmf PUERTO CANTIDAD
+
+   Ejemplo (programar 10 chips):
+   ejemplo_multiple.bat datos.hmf COM3 10
+
+FUNCIONAMIENTO:
+- El script carga los datos UNA SOLA VEZ en la RAM del MagicBridge
+- Luego te pide que coloques cada chip y presiones ENTER
+- Programa el chip y pasa al siguiente
+- Al final muestra un resumen de chips programados/fallidos
+
+═══════════════════════════════════════════════════════════════
+
+SOLUCIÓN DE PROBLEMAS:
+
+❌ Error: "python no se reconoce como un comando interno..."
+   Solución: Instala Python desde https://www.python.org/downloads/
+            Durante la instalación, marca "Add Python to PATH"
+
+❌ Error: "No se puede abrir el puerto COM3"
+   Solución: - Verifica que el MagicBridge esté conectado
+            - Verifica el número de puerto en Administrador de Dispositivos
+            - Cierra cualquier programa que use el puerto (Arduino IDE, etc.)
+
+❌ Error: "Bad magic number in..."
+   Solución: Estás intentando ejecutar un archivo .sh en Windows
+            Usa los archivos .bat en su lugar
+
+❌ Error: "ERROR: No ELMOS chip detected on I2C bus!"
+   Solución: - Verifica que el chip esté bien conectado
+            - Verifica la alimentación del chip (3.3V)
+            - Verifica las conexiones SDA/SCL
+
+═══════════════════════════════════════════════════════════════
+
+CONFIGURACIÓN PREDETERMINADA:
+
+Los scripts vienen configurados para:
+  - PCB:      5
+  - Variante: D
+
+Para programar otro PCB o variante, edita el archivo .bat:
+1. Abre el archivo .bat con el Bloc de notas
+2. Busca las líneas:
+   set PCB=5
+   set VARIANTE=D
+3. Cambia los valores según necesites
+4. Guarda el archivo
+
+Opciones válidas:
+  PCB:      3, 5, 6
+  Variante: D, E
+
+═══════════════════════════════════════════════════════════════
+
+FLUJO DE TRABAJO TÍPICO:
+
+1. Conecta el MagicBridge al PC (anota el puerto COM)
+2. Coloca el chip ELMOS en el socket del adaptador
+3. Ejecuta el script:
+   ejemplo_basico.bat datos.hmf COM3
+4. Espera a que finalice (verás mensajes de progreso)
+5. Al final, verás:
+   ✓ Si hay éxito: "PROGRAMACION COMPLETADA CON EXITO"
+   ✗ Si hay error: Mensaje indicando el problema
+
+═══════════════════════════════════════════════════════════════
+
+ARCHIVOS RELACIONADOS:
+
+  ../scripts/
+    1_cargar_datos_v3.py      - Script de carga de datos
+    2_ejecutar_comando_v3.py  - Script de ejecución de comandos
+
+═══════════════════════════════════════════════════════════════
+
+SOPORTE:
+
+Para más información, consulta:
+  - README.md en el directorio raíz del proyecto
+  - Documentación en MagicBridge_GUI_App/
+
+═══════════════════════════════════════════════════════════════
