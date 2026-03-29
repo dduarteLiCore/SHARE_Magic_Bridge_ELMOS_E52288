@@ -1,0 +1,41 @@
+=====================================================
+  LiCore ELMOS Programmer — Actualizador de Firmware
+=====================================================
+
+REQUISITOS
+----------
+- Windows 10 / Windows 11 (64-bit)
+- Dispositivo LiCore ELMOS Programmer conectado por USB
+- No se requiere instalar nada adicional
+
+PASOS PARA ACTUALIZAR EL FIRMWARE
+-----------------------------------
+1. Conecte el LiCore ELMOS Programmer al PC por USB.
+
+2. Espere que Windows reconozca el dispositivo.
+   Debería aparecer en el Administrador de Dispositivos como:
+   "USB Serial Device (COMxx)"
+
+3. Ejecute:  LiCore_ELMOS_Updater.exe
+
+4. En la lista "Puerto", seleccione el puerto marcado con ★
+   (es el que corresponde al dispositivo LiCore detectado automáticamente).
+
+5. Haga clic en "Instalar Firmware".
+
+6. Espere a que la barra de progreso llegue al 100%.
+   El registro mostrará "Firmware actualizado correctamente".
+
+7. El dispositivo se reiniciará automáticamente con el nuevo firmware.
+
+NOTAS
+-----
+- Durante el proceso el dispositivo parpadeará brevemente — es normal.
+- No desconecte el USB durante la actualización.
+- Si el puerto no aparece marcado con ★, selecciónelo manualmente.
+- En caso de error, desconecte y vuelva a conectar el USB e intente nuevamente.
+
+SOPORTE
+-------
+LiCore Engineering
+=====================================================

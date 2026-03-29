@@ -1,0 +1,54 @@
+=====================================================
+  MagicBridge — Programador OTP ELMOS E52288
+=====================================================
+
+REQUISITOS
+----------
+- Windows 10 / Windows 11 (64-bit)
+- Dispositivo LiCore ELMOS Programmer conectado por USB
+- Archivo de configuración HMF proporcionado por LiCore
+- No se requiere instalar nada adicional
+
+PASOS PARA PROGRAMAR UN CHIP
+-----------------------------
+1. Conecte el LiCore ELMOS Programmer al PC por USB y encienda
+   el sistema a programar.
+
+2. Ejecute:  MagicBridge_Programmer.exe
+
+3. CONFIGURACIÓN:
+   a) Haga clic en "Explorar..." y seleccione el archivo .hmf
+      proporcionado por LiCore Engineering.
+   b) En "Puerto Serial", seleccione el puerto del programador.
+   c) Haga clic en "Conectar".
+   d) En "PCB / Variante", seleccione la configuración correcta.
+
+4. CARGAR DATOS:
+   Haga clic en "CARGAR DATOS (LOAD)".
+   Espere el mensaje de confirmación en el registro.
+
+5. PROGRAMAR:
+   a) Haga clic en "Escribir OTP"  → graba la configuración en el chip.
+   b) Haga clic en "Verificar OTP" → confirma que la escritura fue correcta.
+   c) Haga clic en "Leer OTP"      → lectura sin escritura (diagnóstico).
+
+6. INDICADORES DE ESTADO:
+   - Verde  = operación exitosa
+   - Rojo   = error (verifique conexiones e intente nuevamente)
+   - Naranja = en proceso
+
+PANEL DE LICENCIA
+-----------------
+La barra "Licencia de Escritura" muestra las escrituras disponibles.
+Contacte a LiCore Engineering para renovar la licencia cuando se agote.
+
+NOTAS
+-----
+- El archivo .hmf es único para cada modelo de vehículo/variante.
+- Use siempre el archivo HMF correspondiente al chip a programar.
+- Guarde el Log de cada sesión (botón "Guardar Log") como respaldo.
+
+SOPORTE
+-------
+LiCore Engineering
+=====================================================

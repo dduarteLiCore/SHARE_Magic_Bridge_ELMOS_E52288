@@ -1,0 +1,34 @@
+=====================================================
+  LiCore Engineering — MagicBridge ELMOS E52288
+  Paquete de herramientas para cliente
+=====================================================
+
+CONTENIDO
+---------
+
+  Firmware_Updater\
+    LiCore_ELMOS_Updater.exe    Actualiza el firmware del programador.
+    INSTRUCCIONES.txt           Pasos para actualizar el firmware.
+
+  ELMOS_Programmer\
+    MagicBridge_Programmer.exe  Programa chips ELMOS E52288 OTP.
+    INSTRUCCIONES.txt           Pasos para programar un chip.
+
+USO TÍPICO
+----------
+  Primera vez o después de una actualización de firmware:
+    1. Ejecutar LiCore_ELMOS_Updater.exe
+
+  Para programar chips ELMOS:
+    2. Ejecutar MagicBridge_Programmer.exe
+
+REQUISITOS DEL SISTEMA
+----------------------
+  - Windows 10 / Windows 11 (64-bit)
+  - Puerto USB disponible
+  - Archivo .hmf suministrado por LiCore Engineering
+
+SOPORTE
+-------
+  LiCore Engineering
+=====================================================
