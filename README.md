@@ -28,7 +28,7 @@ Para comenzar a utilizar las herramientas incluidas en este paquete, por favor d
 
 Para ejecutar las herramientas contenidas en este repositorio, el sistema host generalmente requerirá:
 - **Windows** (recomendado para integración con LabVIEW)
-- **Python 3.9+** (con la librería `pyserial`).
+- **Python 3.11** (con la librería `pyserial`).
 - **LabVIEW** (versiones 2018 o superiores para algunas opciones de integración, aunque el paquete soporta adaptaciones genéricas a través de *System Exec*).
 
 ## 📞 Soporte

@@ -4,14 +4,14 @@
 
 Los scripts están en formato bytecode Python (.pyc), lo que significa:
 - ✅ Este paquete contiene los scripts de control del MagicBridge en formato **bytecode compilado (.pyc)**.
-- ✅ Requiere Python 3.6+ instalado (igual que versión normal)
-- ⚠️ Los archivos .pyc son específicos de la versión de Python
+- ✅ Requiere Python 3.11 instalado
+- ⚠️ Los archivos .pyc son específicos de la versión de Python (compilados con CPython 3.11)
 
 ## 🚀 Inicio Rápido
 
 ### Requisitos
-- Python 3.6 o superior
-- pyserial: `pip3 install pyserial`
+- Python 3.11
+- pyserial: `pip install pyserial`
 - MagicBridge conectado vía USB
 
 ### Uso Básico
@@ -38,16 +38,19 @@ bin\magicbridge-cmd.bat COM3 W5d
 
 ```
 MagicBridge_Protected_Package/
-├── bin/                           # Ejecutables protegidos
-│   ├── magicbridge-load          # Script carga (Linux/macOS)
-│   ├── magicbridge-cmd           # Script comandos (Linux/macOS)
-│   ├── magicbridge-load.bat      # Script carga (Windows)
-│   ├── magicbridge-cmd.bat       # Script comandos (Windows)
-│   └── *.pyc                     # Bytecode compilado
+├── bin/                           # Ejecutables
+│   ├── magicbridge-load          # Wrapper carga (Linux/macOS)
+│   ├── magicbridge-cmd           # Wrapper comandos (Linux/macOS)
+│   ├── magicbridge-load.bat      # Wrapper carga (Windows)
+│   ├── magicbridge-cmd.bat       # Wrapper comandos (Windows)
+│   ├── runner_load.py            # Runner Python - carga datos
+│   ├── runner_cmd.py             # Runner Python - ejecutar comando
+│   ├── 1_cargar_datos_v3.cpython-311.pyc
+│   ├── 2_ejecutar_comando_v3.cpython-311.pyc
+│   └── hmf_loader.cpython-311.pyc
 │
 ├── examples/                      # Ejemplos de uso
 ├── docs/                          # Documentación
-├── data/                          # Archivos de datos (vacío)
 └── README.md                      # Este archivo
 ```
 
@@ -57,7 +60,7 @@ MagicBridge_Protected_Package/
 
 ```bash
 # Sintaxis
-magicbridge-load <archivo.hmf> <puerto> <PCB> <variante> [opciones]
+./bin/magicbridge-load <archivo.hmf> <puerto> <PCB> <variante> [opciones]
 
 # Parámetros
 - archivo.hmf : Archivo con datos OTP
@@ -79,7 +82,7 @@ magicbridge-load <archivo.hmf> <puerto> <PCB> <variante> [opciones]
 
 ```bash
 # Sintaxis
-magicbridge-cmd <puerto> <comando> [opciones]
+./bin/magicbridge-cmd <puerto> <comando> [opciones]
 
 # Comandos disponibles
 W<PCB><var> : Write (escribir y verificar)
@@ -151,7 +154,7 @@ Buscar: "LiCore ELMOS Programmer (COMx)"
 ### Verificar Python y pyserial
 
 ```bash
-python3 --version
+python3 --version   # debe ser 3.11.x
 python3 -c "import serial; print(serial.__version__)"
 ```
 
@@ -160,27 +163,33 @@ python3 -c "import serial; print(serial.__version__)"
 Ver carpeta `examples/` para scripts de ejemplo:
 - `ejemplo_basico.sh` - Programación básica (Linux/macOS)
 - `ejemplo_basico.bat` - Programación básica (Windows)
-- `ejemplo_multiple.sh` - Múltiples chips
+- `ejemplo_multiple.sh` - Múltiples chips (Linux/macOS)
+- `ejemplo_multiple.bat` - Múltiples chips (Windows)
 - `ejemplo_json.py` - Integración con JSON
 
 ## ❓ Ayuda
 
 ### Ver ayuda completa
 ```bash
+# Linux/macOS
 ./bin/magicbridge-load --help
 ./bin/magicbridge-cmd --help
+
+# Windows
+bin\magicbridge-load.bat --help
+bin\magicbridge-cmd.bat --help
 ```
 
 ### Documentación
 - [docs/INSTALACION.md](docs/INSTALACION.md) - Guía de instalación
 - [docs/REFERENCIA_RAPIDA.md](docs/REFERENCIA_RAPIDA.md) - Referencia rápida
-- [examples/README.md](examples/README.md) - Guía de ejemplos
+- [examples/README_EXAMPLES.md](examples/README_EXAMPLES.md) - Guía de ejemplos
 
 ## ⚠️ Notas Importantes
 
 1. **Bytecode .pyc**
-   - Generado con Python 3.12
-   - Compatible con Python 3.8-3.12
+   - Compilado con Python 3.11
+   - Requiere Python 3.11 instalado
    - No es código fuente visible
 
 2. **Los datos se cargan una vez**
@@ -197,13 +206,13 @@ Ver carpeta `examples/` para scripts de ejemplo:
 **Causa:** Versión de Python incompatible con .pyc
 
 **Solución:**
-- Usar Python 3.8 o superior
-- Si persiste, solicitar versión recompilada para tu Python
+- Instalar Python 3.11
+- Verificar con: `python --version`
 
 ### Error: "No module named 'serial'"
 **Solución:**
 ```bash
-pip3 install pyserial
+pip install pyserial
 ```
 
 ### MagicBridge no detectado
@@ -222,5 +231,5 @@ Para problemas técnicos, revisar:
 ---
 
 **MagicBridge ELMOS Programmer**
-Paquete Cliente v1.0
+Paquete Cliente v1.1
 © 2026 LiCore

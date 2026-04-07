@@ -23,7 +23,7 @@ MagicBridge_LabVIEW_Integration/
 │   └── MagicBridge_Main.vi
 │
 ├── bin/                            # 🔧 Scripts compilados
-│   └── (copiar desde MagicBridge_Protected_Package)
+│   └── (copiar desde MagicBridge_Protected_Package/bin/)
 │
 └── README.md                       # Este archivo
 
@@ -52,7 +52,7 @@ MagicBridge_LabVIEW_Integration/
 ### 1. Instalar Requisitos
 
 ```cmd
-REM Python 3.9+
+REM Python 3.11
 python --version
 
 REM pyserial
@@ -66,11 +66,11 @@ REM Crear estructura
 mkdir C:\MagicBridge\bin
 mkdir C:\MagicBridge\helpers
 
-REM Copiar scripts protegidos
-xcopy bin C:\MagicBridge\bin\ /E
+REM Copiar scripts protegidos (carpeta bin completa)
+xcopy MagicBridge_Protected_Package\bin C:\MagicBridge\bin\ /E
 
 REM Copiar helpers
-xcopy python_wrappers C:\MagicBridge\helpers\ /E
+xcopy MagicBridge_LabVIEW_Integration\python_wrappers C:\MagicBridge\helpers\ /E
 ```
 
 ### 3. Verificar Instalación
@@ -118,7 +118,7 @@ Ver [examples/EJEMPLO_PASO_A_PASO.md](examples/EJEMPLO_PASO_A_PASO.md)
 
 ```
 [System Exec.vi]
-  Command: python C:\MagicBridge\bin\magicbridge-load.bat 
+  Command: C:\MagicBridge\bin\magicbridge-load.bat
            C:\Data\archivo.hmf COM3 5 D --quiet
   Return Code: 0 = éxito
 ```
@@ -127,7 +127,7 @@ Ver [examples/EJEMPLO_PASO_A_PASO.md](examples/EJEMPLO_PASO_A_PASO.md)
 
 ```
 [System Exec.vi]
-  Command: python C:\MagicBridge\bin\magicbridge-cmd.bat 
+  Command: C:\MagicBridge\bin\magicbridge-cmd.bat
            COM3 W5d --quiet
   Return Code: 0 = éxito
 ```
@@ -138,9 +138,10 @@ Ver [examples/EJEMPLO_PASO_A_PASO.md](examples/EJEMPLO_PASO_A_PASO.md)
 LabVIEW Application
         │
         ├─> System Exec.vi
-        │   └─> Python Scripts (.pyc)
-        │       └─> Serial Port (COM)
-        │           └─> MagicBridge Hardware
+        │   └─> magicbridge-load.bat / magicbridge-cmd.bat
+        │       └─> Scripts Python (.pyc)
+        │           └─> Serial Port (COM)
+        │               └─> MagicBridge Hardware
         │
         └─> Parse Results (JSON/Text)
             └─> Update UI
@@ -151,23 +152,23 @@ LabVIEW Application
 ```
 // Inicialización
 puerto = DetectarPuerto()
-CargarDatos("C:\Data\prod.hmf", puerto, 5, "D")
+C:\MagicBridge\bin\magicbridge-load.bat C:\Data\prod.hmf puerto 5 D
 
 // Loop de producción
 WHILE operando DO
     // Esperar chip
     MostrarMensaje("Coloque chip nuevo")
-    
+
     // Programar
-    resultado = EjecutarComando(puerto, "W5d")
-    
+    resultado = C:\MagicBridge\bin\magicbridge-cmd.bat puerto W5d
+
     // Actualizar estadísticas
     IF resultado == OK THEN
         contador_ok++
     ELSE
         contador_error++
     END IF
-    
+
     // Mostrar en pantalla
     ActualizarUI(contador_ok, contador_error)
 END WHILE
@@ -248,7 +249,7 @@ Usar `--quiet` en producción para evitar output innecesario.
 ### Error: "Python no encontrado"
 **Solución:** Usar ruta completa
 ```
-C:\Users\...\AppData\Local\Programs\Python\Python39\python.exe
+C:\Users\...\AppData\Local\Programs\Python\Python311\python.exe
 ```
 
 ### Error: "Timeout"
@@ -274,9 +275,9 @@ Ver documentación completa:
 
 ## ✅ Checklist de Implementación
 
-- [ ] Python instalado y en PATH
+- [ ] Python 3.11 instalado y en PATH
 - [ ] pyserial instalado
-- [ ] Scripts copiados a C:\MagicBridge\
+- [ ] Carpeta bin copiada a C:\MagicBridge\bin\
 - [ ] Helper scripts probados manualmente
 - [ ] VI de detección de puerto creado y probado
 - [ ] VI de carga de datos creado y probado
@@ -288,5 +289,5 @@ Ver documentación completa:
 ---
 
 **MagicBridge + LabVIEW**
-Paquete de Integración v1.0
+Paquete de Integración v1.1
 © 2026 LiCore

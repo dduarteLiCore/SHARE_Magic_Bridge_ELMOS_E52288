@@ -69,14 +69,13 @@ EJEMPLO DE USO:
 - Compatible con todas las versiones de LabVIEW
 - No requiere toolkits adicionales
 - Fácil debugging
-- Usa scripts protegidos (.pyc)
+- Usa scripts protegidos (.pyc) a través de wrappers .bat
 
 **Configuración:**
 ```
 System Exec.vi
-├── Command Line: python
-├── Arguments: C:\Path\to\script.py [args]
-├── Working Directory: C:\Path\to\
+├── Command Line: C:\MagicBridge\bin\magicbridge-load.bat [args]
+├── Working Directory: C:\MagicBridge\
 ├── Wait Until Completion: TRUE
 ├── Standard Output: String output
 └── Exit Code: Integer (0 = success)
@@ -87,7 +86,7 @@ System Exec.vi
 **Requisitos:**
 - LabVIEW 2018 o superior
 - Python Integration Toolkit
-- Python instalado
+- Python 3.11 instalado
 
 **Ventajas:**
 - Llamadas directas a funciones Python
@@ -108,47 +107,46 @@ System Exec.vi
 
 ## Scripts Python Disponibles
 
-Todos los scripts están en `../bin/`:
+Todos los scripts están en `../bin/` (o `C:\MagicBridge\bin\` si se copió):
 
-### Scripts Principales
-- `magicbridge-load` / `.bat` - Cargar datos HMF
-- `magicbridge-cmd` / `.bat` - Ejecutar comandos
+### Wrappers Principales (usar estos desde LabVIEW)
+- `magicbridge-load.bat` - Cargar datos HMF (Windows)
+- `magicbridge-cmd.bat` - Ejecutar comandos (Windows)
+- `magicbridge-load` - Cargar datos HMF (Linux/macOS)
+- `magicbridge-cmd` - Ejecutar comandos (Linux/macOS)
 
 ### Scripts Auxiliares
 - `detect_port.py` - Detectar puerto COM automáticamente
 - `magicbridge_api.py` - API wrapper con JSON output
 
-### Scripts Protegidos (Bytecode)
-- `1_cargar_datos_v3.cpython-312.pyc`
-- `2_ejecutar_comando_v3.cpython-312.pyc`
+### Bytecode Compilado (no llamar directamente)
+- `1_cargar_datos_v3.cpython-311.pyc`
+- `2_ejecutar_comando_v3.cpython-311.pyc`
+- `hmf_loader.cpython-311.pyc`
 
 ## Ejemplos Rápidos de Llamadas System Exec
 
 ### Detectar Puerto COM
 ```
-Command: python
-Arguments: C:\MagicBridge\bin\detect_port.py
+Command: python C:\MagicBridge\bin\detect_port.py
 Output: "COM3" o "NOT_FOUND"
 ```
 
 ### Cargar Datos HMF
 ```
-Command: python
-Arguments: C:\MagicBridge\bin\magicbridge-load.bat C:\Data\file.hmf COM3 5 D --json C:\Temp\result.json
+Command: C:\MagicBridge\bin\magicbridge-load.bat C:\Data\file.hmf COM3 5 D --json C:\Temp\result.json
 Output: JSON con resultados
 ```
 
 ### Programar Chip
 ```
-Command: python
-Arguments: C:\MagicBridge\bin\magicbridge-cmd.bat COM3 W5d --json C:\Temp\write.json
+Command: C:\MagicBridge\bin\magicbridge-cmd.bat COM3 W5d --json C:\Temp\write.json
 Output: JSON con resultados
 ```
 
 ### Verificar Chip
 ```
-Command: python
-Arguments: C:\MagicBridge\bin\magicbridge-cmd.bat COM3 R5d --json C:\Temp\read.json
+Command: C:\MagicBridge\bin\magicbridge-cmd.bat COM3 R5d --json C:\Temp\read.json
 Output: JSON con resultados
 ```
 
@@ -296,11 +294,8 @@ Proporciona feedback visual al usuario:
 - `../docs/INTEGRACION_LABVIEW.md` - Guía técnica completa
 - `../examples/EJEMPLO_PASO_A_PASO.md` - Tutorial detallado
 
-**Scripts de ejemplo:**
-- `../bin/` - Todos los scripts Python
-
-**Repositorio:**
-- `/home/david/Documents/ELMOS2026/MagicBridge_Release_v1.0/`
+**Scripts:**
+- `../bin/` - Todos los scripts Python y wrappers
 
 ## Próximos Pasos
 

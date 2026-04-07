@@ -18,7 +18,7 @@ Una aplicación LabVIEW que:
 
 ### Paso 1: Instalar Software Requerido
 
-1. **Python 3.9 o superior**
+1. **Python 3.11**
    - Descargar: https://www.python.org/downloads/
    - ✅ IMPORTANTE: Marcar "Add Python to PATH"
    
@@ -38,7 +38,7 @@ Una aplicación LabVIEW que:
 1. Crear estructura de carpetas:
    ```
    C:\MagicBridge\
-   ├── bin\                  (scripts compilados .pyc)
+   ├── bin\                  (wrappers + scripts compilados .pyc)
    ├── helpers\              (scripts helper)
    └── data\                 (archivos HMF)
    ```
@@ -171,7 +171,7 @@ Crear un VI que cargue datos HMF al MagicBridge.
 
 5. **Build Command String (Formula Node o Concatenate Strings):**
    ```
-   comando = "python C:\MagicBridge\bin\magicbridge-load " + 
+   comando = "C:\MagicBridge\bin\magicbridge-load.bat " + 
              Path_to_String(archivo_hmf) + " " + 
              puerto_com + " " + 
              Number_to_String(pcb) + " " + 
@@ -251,7 +251,7 @@ Crear un VI que programe un chip usando los datos previamente cargados.
 
 5. **Build Command:**
    ```
-   comando = "python C:\MagicBridge\bin\magicbridge-cmd " + 
+   comando = "C:\MagicBridge\bin\magicbridge-cmd.bat " + 
              puerto_com + " " + 
              comando + " --quiet"
    ```

@@ -23,9 +23,14 @@ Esta carpeta contiene ejemplos prácticos de uso del MagicBridge.
    ejemplo_basico.bat datos.hmf COM3
    ```
 
+4. **[ejemplo_multiple.bat](ejemplo_multiple.bat)** - Múltiples chips (Windows)
+   ```cmd
+   ejemplo_multiple.bat datos.hmf COM3 5
+   ```
+
 ### Scripts Python
 
-4. **[ejemplo_json.py](ejemplo_json.py)** - Integración con salida JSON
+5. **[ejemplo_json.py](ejemplo_json.py)** - Integración con salida JSON
    ```bash
    python3 ejemplo_json.py
    ```
@@ -50,6 +55,9 @@ chmod +x *.sh
 ```cmd
 REM Programar un chip
 ejemplo_basico.bat C:\ruta\a\datos.hmf COM3
+
+REM Programar 5 chips
+ejemplo_multiple.bat C:\ruta\a\datos.hmf COM3 5
 ```
 
 ### Python (cualquier OS)
@@ -80,7 +88,7 @@ VARIANTE = "D"
 - **Primero prueba manualmente**: Antes de usar scripts automatizados, prueba los comandos manualmente
 - **Revisa los logs**: Los scripts muestran mensajes detallados de lo que ocurre
 - **JSON para producción**: Usa `ejemplo_json.py` como base para sistemas automatizados
-- **Múltiples chips**: `ejemplo_multiple.sh` es ideal para producción en masa
+- **Múltiples chips**: `ejemplo_multiple.bat` / `ejemplo_multiple.sh` son ideales para producción en masa
 
 ## 🔧 Solución de Problemas
 
@@ -91,25 +99,26 @@ chmod +x ejemplo_basico.sh
 ./ejemplo_basico.sh ...
 ```
 
-### Error "python3: command not found" (Windows)
+### Error "python: command not found" (Linux)
 
-Usar `python` en lugar de `python3`:
-```cmd
-python 1_cargar_datos_v3.py ...
+Usar `python3` en lugar de `python`:
+```bash
+python3 ejemplo_json.py
 ```
 
-### Scripts no encuentran los archivos Python
+### Cómo funcionan los scripts internamente
 
-Los scripts asumen esta estructura:
+Los scripts `.bat` y `.sh` de esta carpeta llaman a los wrappers en `../bin/`:
 ```
-MagicBridge_Client_Package/
-├── scripts/      <- Scripts Python aquí
-└── examples/     <- Scripts de ejemplo aquí
+examples/ejemplo_basico.bat
+    → bin\magicbridge-load.bat   (carga datos HMF)
+    → bin\magicbridge-cmd.bat    (programa el chip)
 ```
 
-Si moviste archivos, actualiza las rutas en los scripts.
+Las rutas se resuelven automáticamente — los scripts funcionan independientemente
+de desde qué directorio se ejecuten.
 
 ---
 
 **MagicBridge ELMOS Programmer**
-Ejemplos v1.0
+Ejemplos v1.1

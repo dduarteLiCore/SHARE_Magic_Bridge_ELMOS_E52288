@@ -42,12 +42,10 @@ REM Paso 1: Cargar datos
 echo --------------------------------------------------------
 echo PASO 1: Cargando datos HMF al MagicBridge...
 echo --------------------------------------------------------
-cd ..\scripts
-python 1_cargar_datos_v3.py "%ARCHIVO_HMF%" "%PUERTO%" %PCB% %VARIANTE%
+call "%~dp0\..\bin\magicbridge-load.bat" "%ARCHIVO_HMF%" "%PUERTO%" %PCB% %VARIANTE%
 
 if errorlevel 1 (
     echo ERROR: Error al cargar datos
-    cd ..\examples
     pause
     exit /b 1
 )
@@ -64,11 +62,10 @@ set VARIANTE_MIN=%VARIANTE%
 if "%VARIANTE%"=="D" set VARIANTE_MIN=d
 if "%VARIANTE%"=="E" set VARIANTE_MIN=e
 
-python 2_ejecutar_comando_v3.py "%PUERTO%" W%PCB%%VARIANTE_MIN%
+call "%~dp0\..\bin\magicbridge-cmd.bat" "%PUERTO%" W%PCB%%VARIANTE_MIN%
 
 if errorlevel 1 (
     echo ERROR: Error al programar chip
-    cd ..\examples
     pause
     exit /b 1
 )
@@ -79,5 +76,4 @@ echo ========================================================
 echo           PROGRAMACION COMPLETADA CON EXITO
 echo ========================================================
 echo.
-cd ..\examples
 pause

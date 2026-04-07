@@ -240,7 +240,7 @@ python3 bin/magicbridge-load archivo.hmf /dev/ttyACM0 5 D
 **Solución:**
 ```cmd
 REM Ejecutar directamente con Python
-python bin\1_cargar_datos_v3.cpython-312.pyc archivo.hmf COM3 5 D
+python bin\1_cargar_datos_v3.cpython-311.pyc archivo.hmf COM3 5 D
 ```
 
 ### macOS: "Permission denied"
@@ -279,8 +279,8 @@ sudo usermod -a -G dialout $USER
 # Verificar versión de Python
 python3 --version
 
-# Los archivos .pyc requieren Python 3.8+
-# Si tienes Python 3.7 o menor, actualizar a 3.8+
+# Los archivos .pyc requieren Python 3.11
+# Si tienes otra versión, instalar Python 3.11
 ```
 
 ---
@@ -296,7 +296,7 @@ python3 --version
 | USB | Puerto USB 2.0 o superior |
 | SO | Linux (kernel 4.x+), Windows 10+, macOS 10.13+ |
 
-**Nota:** Este paquete usa bytecode Python (.pyc) compilado con Python 3.12, compatible con Python 3.8-3.13.
+**Nota:** Este paquete usa bytecode Python (.pyc) compilado con Python 3.11. Requiere Python 3.11 instalado.
 
 ---
 
@@ -324,10 +324,10 @@ Llamar los archivos .pyc directamente:
 
 ```bash
 # Linux/macOS
-python3 bin/1_cargar_datos_v3.cpython-312.pyc archivo.hmf /dev/ttyACM0 5 D
+python3 bin/1_cargar_datos_v3.cpython-311.pyc archivo.hmf /dev/ttyACM0 5 D
 
 # Windows
-python bin\1_cargar_datos_v3.cpython-312.pyc archivo.hmf COM3 5 D
+python bin\1_cargar_datos_v3.cpython-311.pyc archivo.hmf COM3 5 D
 ```
 
 ---

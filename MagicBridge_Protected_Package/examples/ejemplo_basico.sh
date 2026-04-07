@@ -8,6 +8,8 @@
 
 set -e  # Salir si hay error
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # Verificar argumentos
 if [ $# -ne 2 ]; then
     echo "❌ Error: Faltan argumentos"
@@ -40,8 +42,7 @@ echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "📥 PASO 1: Cargando datos HMF al MagicBridge..."
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-cd ../scripts
-python3 1_cargar_datos_v3.py "$ARCHIVO_HMF" "$PUERTO" $PCB $VARIANTE
+"$SCRIPT_DIR/../bin/magicbridge-load" "$ARCHIVO_HMF" "$PUERTO" $PCB $VARIANTE
 
 if [ $? -eq 0 ]; then
     echo "✅ Datos cargados exitosamente"
@@ -54,7 +55,7 @@ echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "✍️  PASO 2: Programando chip..."
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-python3 2_ejecutar_comando_v3.py "$PUERTO" W${PCB}${VARIANTE,}
+"$SCRIPT_DIR/../bin/magicbridge-cmd" "$PUERTO" W${PCB}${VARIANTE,}
 
 if [ $? -eq 0 ]; then
     echo "✅ Chip programado exitosamente"

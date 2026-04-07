@@ -2,34 +2,44 @@
 
 ## 🎯 Comandos Esenciales
 
-### Cargar Datos
+### Cargar Datos (Linux/macOS)
 ```bash
-python3 1_cargar_datos_v3.py <archivo.hmf> <puerto> <PCB> <variante>
+./bin/magicbridge-load <archivo.hmf> <puerto> <PCB> <variante>
 ```
 
-### Ejecutar Comando
+### Cargar Datos (Windows)
+```cmd
+bin\magicbridge-load.bat <archivo.hmf> <puerto> <PCB> <variante>
+```
+
+### Ejecutar Comando (Linux/macOS)
 ```bash
-python3 2_ejecutar_comando_v3.py <puerto> <comando>
+./bin/magicbridge-cmd <puerto> <comando>
+```
+
+### Ejecutar Comando (Windows)
+```cmd
+bin\magicbridge-cmd.bat <puerto> <comando>
 ```
 
 ---
 
 ## 📝 Tabla de Comandos
 
-| Comando | PCB | Variante | Descripción | Ejemplo |
+| Comando | PCB | Variante | Descripción | Ejemplo (Linux) |
 |---------|-----|----------|-------------|---------|
-| W3d | 3 | D | Write PCB 3 variante D | `python3 2_ejecutar_comando_v3.py /dev/ttyACM0 W3d` |
-| W3e | 3 | E | Write PCB 3 variante E | `python3 2_ejecutar_comando_v3.py /dev/ttyACM0 W3e` |
-| W5d | 5 | D | Write PCB 5 variante D | `python3 2_ejecutar_comando_v3.py /dev/ttyACM0 W5d` |
-| W5e | 5 | E | Write PCB 5 variante E | `python3 2_ejecutar_comando_v3.py /dev/ttyACM0 W5e` |
-| W6d | 6 | D | Write PCB 6 variante D | `python3 2_ejecutar_comando_v3.py /dev/ttyACM0 W6d` |
-| W6e | 6 | E | Write PCB 6 variante E | `python3 2_ejecutar_comando_v3.py /dev/ttyACM0 W6e` |
-| R3d | 3 | D | Read PCB 3 variante D | `python3 2_ejecutar_comando_v3.py /dev/ttyACM0 R3d` |
-| R5d | 5 | D | Read PCB 5 variante D | `python3 2_ejecutar_comando_v3.py /dev/ttyACM0 R5d` |
-| R6d | 6 | D | Read PCB 6 variante D | `python3 2_ejecutar_comando_v3.py /dev/ttyACM0 R6d` |
-| P3d | 3 | D | Program PCB 3 variante D | `python3 2_ejecutar_comando_v3.py /dev/ttyACM0 P3d` |
-| P5d | 5 | D | Program PCB 5 variante D | `python3 2_ejecutar_comando_v3.py /dev/ttyACM0 P5d` |
-| P6d | 6 | D | Program PCB 6 variante D | `python3 2_ejecutar_comando_v3.py /dev/ttyACM0 P6d` |
+| W3d | 3 | D | Write PCB 3 variante D | `./bin/magicbridge-cmd /dev/ttyACM0 W3d` |
+| W3e | 3 | E | Write PCB 3 variante E | `./bin/magicbridge-cmd /dev/ttyACM0 W3e` |
+| W5d | 5 | D | Write PCB 5 variante D | `./bin/magicbridge-cmd /dev/ttyACM0 W5d` |
+| W5e | 5 | E | Write PCB 5 variante E | `./bin/magicbridge-cmd /dev/ttyACM0 W5e` |
+| W6d | 6 | D | Write PCB 6 variante D | `./bin/magicbridge-cmd /dev/ttyACM0 W6d` |
+| W6e | 6 | E | Write PCB 6 variante E | `./bin/magicbridge-cmd /dev/ttyACM0 W6e` |
+| R3d | 3 | D | Read PCB 3 variante D | `./bin/magicbridge-cmd /dev/ttyACM0 R3d` |
+| R5d | 5 | D | Read PCB 5 variante D | `./bin/magicbridge-cmd /dev/ttyACM0 R5d` |
+| R6d | 6 | D | Read PCB 6 variante D | `./bin/magicbridge-cmd /dev/ttyACM0 R6d` |
+| P3d | 3 | D | Program PCB 3 variante D | `./bin/magicbridge-cmd /dev/ttyACM0 P3d` |
+| P5d | 5 | D | Program PCB 5 variante D | `./bin/magicbridge-cmd /dev/ttyACM0 P5d` |
+| P6d | 6 | D | Program PCB 6 variante D | `./bin/magicbridge-cmd /dev/ttyACM0 P6d` |
 
 ---
 
@@ -37,22 +47,22 @@ python3 2_ejecutar_comando_v3.py <puerto> <comando>
 
 ### Salida JSON
 ```bash
-python3 1_cargar_datos_v3.py datos.hmf /dev/ttyACM0 5 D --json resultado.json
+./bin/magicbridge-load datos.hmf /dev/ttyACM0 5 D --json resultado.json
 ```
 
 ### Logging a Archivo
 ```bash
-python3 1_cargar_datos_v3.py datos.hmf /dev/ttyACM0 5 D --log carga.log
+./bin/magicbridge-load datos.hmf /dev/ttyACM0 5 D --log carga.log
 ```
 
 ### Modo Silencioso
 ```bash
-python3 1_cargar_datos_v3.py datos.hmf /dev/ttyACM0 5 D --quiet
+./bin/magicbridge-load datos.hmf /dev/ttyACM0 5 D --quiet
 ```
 
 ### Combinación (JSON + Log + Silencioso)
 ```bash
-python3 1_cargar_datos_v3.py datos.hmf /dev/ttyACM0 5 D \
+./bin/magicbridge-load datos.hmf /dev/ttyACM0 5 D \
   --json result.json --log carga.log --quiet
 ```
 
@@ -144,11 +154,16 @@ Get-PnpDevice | Where-Object {$_.FriendlyName -like "*ELMOS*"}
 
 Ver ayuda completa:
 ```bash
-python3 1_cargar_datos_v3.py --help
-python3 2_ejecutar_comando_v3.py --help
+# Linux/macOS
+./bin/magicbridge-load --help
+./bin/magicbridge-cmd --help
+
+# Windows
+bin\magicbridge-load.bat --help
+bin\magicbridge-cmd.bat --help
 ```
 
 ---
 
 **MagicBridge ELMOS Programmer**
-Referencia Rápida v1.0
+Referencia Rápida v1.1

@@ -1,15 +1,15 @@
-#!/usr/bin/env python3
-"""MagicBridge - Ejecución de comandos"""
-import sys
-import os
+#!/bin/bash
+# MagicBridge - Ejecutar comando
+# Uso: magicbridge-cmd <puerto> <comando> [opciones]
+#
+# Comandos disponibles:
+#   W<PCB><var>  Escribir chip  (ej: W5d)
+#   R<PCB><var>  Leer chip      (ej: R5d)
+#   P<PCB><var>  Programar chip (ej: P5d)
+#
+# Ejemplo:
+#   ./magicbridge-cmd /dev/ttyACM0 W5d
+#   ./magicbridge-cmd /dev/ttyACM0 R5d --json result.json
 
-# Directorio donde está este script
-script_dir = os.path.dirname(os.path.abspath(__file__))
-pyc_file = os.path.join(script_dir, "2_ejecutar_comando_v3.cpython-312.pyc")
-
-# Importar y ejecutar el bytecode
-import importlib.util
-spec = importlib.util.spec_from_file_location("comando", pyc_file)
-module = importlib.util.module_from_spec(spec)
-sys.modules["comando"] = module
-spec.loader.exec_module(module)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+python3 "$SCRIPT_DIR/runner_cmd.py" "$@"

@@ -21,7 +21,7 @@ Este documento describe cómo integrar el MagicBridge ELMOS Programmer con LabVI
                         ▼
 ┌─────────────────────────────────────────────────────────────┐
 │           Scripts Python MagicBridge                        │
-│    (1_cargar_datos_v3.py / 2_ejecutar_comando_v3.py)        │
+│    (magicbridge-load.bat / magicbridge-cmd.bat)             │
 └───────────────────────┬─────────────────────────────────────┘
                         │
                         ▼
@@ -111,7 +111,7 @@ Crear DLL de Windows que envuelva los scripts Python
 ### Requisitos Previos
 
 1. **LabVIEW instalado** (cualquier versión)
-2. **Python 3.6+ instalado en Windows**
+2. **Python 3.11 instalado en Windows**
    - Descargar de: https://www.python.org/downloads/
    - ⚠️ IMPORTANTE: Marcar "Add Python to PATH" durante instalación
 3. **pyserial instalado**
@@ -130,7 +130,7 @@ Crear DLL de Windows que envuelva los scripts Python
 2. Verificar que Python funciona:
    ```cmd
    python --version
-   python C:\MagicBridge\scripts\1_cargar_datos_v3.py --help
+   python C:\MagicBridge\bin\magicbridge-load.bat --help
    ```
 
 ### Paso 2: Crear VI de Carga de Datos
@@ -163,12 +163,12 @@ Crear DLL de Windows que envuelva los scripts Python
 
 **Command String Builder:**
 ```
-python C:\MagicBridge\scripts\1_cargar_datos_v3.py [HMF File Path] [COM Port] [PCB Number] [Variant] --json C:\Temp\result.json --quiet
+python C:\MagicBridge\bin\magicbridge-load.bat [HMF File Path] [COM Port] [PCB Number] [Variant] --json C:\Temp\result.json --quiet
 ```
 
 **Ejemplo de comando generado:**
 ```
-python C:\MagicBridge\scripts\1_cargar_datos_v3.py C:\Data\archivo.hmf COM3 5 D --json C:\Temp\result.json --quiet
+python C:\MagicBridge\bin\magicbridge-load.bat C:\Data\archivo.hmf COM3 5 D --json C:\Temp\result.json --quiet
 ```
 
 ### Paso 3: Crear VI de Ejecución de Comandos
@@ -187,7 +187,7 @@ python C:\MagicBridge\scripts\1_cargar_datos_v3.py C:\Data\archivo.hmf COM3 5 D 
 
 **Command String Builder:**
 ```
-python C:\MagicBridge\scripts\2_ejecutar_comando_v3.py [COM Port] [Command] --json C:\Temp\cmd_result.json --quiet
+python C:\MagicBridge\bin\magicbridge-cmd.bat [COM Port] [Command] --json C:\Temp\cmd_result.json --quiet
 ```
 
 ### Paso 4: Parsear Resultados JSON
@@ -239,7 +239,7 @@ LabVIEW puede parsear JSON de varias formas:
 
 ```
 // Construir comando
-comando = "python C:\MagicBridge\scripts\1_cargar_datos_v3.py " + 
+comando = "python C:\MagicBridge\bin\magicbridge-load.bat " + 
           filepath + " " + 
           comport + " " + 
           String(pcb) + " " + 
@@ -273,7 +273,7 @@ END IF
 
 ```
 // Construir comando
-comando = "python C:\MagicBridge\scripts\2_ejecutar_comando_v3.py " + 
+comando = "python C:\MagicBridge\bin\magicbridge-cmd.bat " + 
           comport + " " + 
           command + 
           " --json C:\Temp\cmd.json --quiet"
@@ -326,7 +326,7 @@ END WHILE
    - La carga de datos puede tardar 10-20 segundos
    - La programación tarda 5-10 segundos
 
-2. **Working Directory:** Establecer a `C:\MagicBridge\scripts\`
+2. **Working Directory:** Establecer a `C:\MagicBridge\bin\`
    - Ayuda si hay rutas relativas
 
 3. **Wait Until Completion:** TRUE
@@ -441,10 +441,14 @@ Desde LabVIEW:
 
 ```
 C:\MagicBridge\
-├── scripts\
-│   ├── 1_cargar_datos_v3.py
-│   ├── 2_ejecutar_comando_v3.py
-│   └── hmf_loader.py
+├── bin\
+│   ├── magicbridge-load.bat
+│   ├── magicbridge-cmd.bat
+│   ├── runner_load.py
+│   ├── runner_cmd.py
+│   ├── 1_cargar_datos_v3.cpython-311.pyc
+│   ├── 2_ejecutar_comando_v3.cpython-311.pyc
+│   └── hmf_loader.cpython-311.pyc
 │
 ├── data\
 │   └── archivo.hmf              (archivos HMF del cliente)
@@ -507,7 +511,7 @@ PARALLEL:
 ```
 // Usar ruta completa de Python
 comando = "C:\Users\[User]\AppData\Local\Programs\Python\Python39\python.exe " + 
-          "C:\MagicBridge\scripts\1_cargar_datos_v3.py ..."
+          "C:\MagicBridge\bin\magicbridge-load.bat ..."
 ```
 
 ### Problema: "Timeout en System Exec"
@@ -638,7 +642,7 @@ END TRY
 
 ## 🚀 Checklist de Implementación
 
-- [ ] Python 3.6+ instalado en Windows
+- [ ] Python 3.11 instalado en Windows
 - [ ] pyserial instalado
 - [ ] Scripts MagicBridge en C:\MagicBridge\
 - [ ] VI de carga creado y probado

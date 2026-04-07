@@ -8,6 +8,8 @@
 
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 if [ $# -ne 3 ]; then
     echo "❌ Error: Faltan argumentos"
     echo ""
@@ -40,8 +42,7 @@ echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "📥 Cargando datos HMF al MagicBridge (solo una vez)..."
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-cd ../scripts
-python3 1_cargar_datos_v3.py "$ARCHIVO_HMF" "$PUERTO" $PCB $VARIANTE --quiet
+"$SCRIPT_DIR/../bin/magicbridge-load" "$ARCHIVO_HMF" "$PUERTO" $PCB $VARIANTE --quiet
 
 if [ $? -ne 0 ]; then
     echo "❌ Error al cargar datos"
@@ -59,15 +60,15 @@ for i in $(seq 1 $CANTIDAD); do
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo "✍️  Chip $i de $CANTIDAD"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    
+
     if [ $i -gt 1 ]; then
         echo "⏸️  Presiona ENTER después de cambiar el chip..."
         read
     fi
-    
+
     echo "🔧 Programando..."
-    python3 2_ejecutar_comando_v3.py "$PUERTO" W${PCB}${VARIANTE,} --quiet
-    
+    "$SCRIPT_DIR/../bin/magicbridge-cmd" "$PUERTO" W${PCB}${VARIANTE,} --quiet
+
     if [ $? -eq 0 ]; then
         echo "✅ Chip $i programado exitosamente"
         EXITOSOS=$((EXITOSOS + 1))

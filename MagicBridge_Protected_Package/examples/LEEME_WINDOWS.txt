@@ -84,7 +84,7 @@ SOLUCIÓN DE PROBLEMAS:
 ❌ Error: "No se puede abrir el puerto COM3"
    Solución: - Verifica que el MagicBridge esté conectado
             - Verifica el número de puerto en Administrador de Dispositivos
-            - Cierra cualquier programa que use el puerto (Arduino IDE, etc.)
+            - Cierra cualquier programa que use el puerto (MagicBridge IDE, etc.)
 
 ❌ Error: "Bad magic number in..."
    Solución: Estás intentando ejecutar un archivo .sh en Windows
