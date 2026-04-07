@@ -23,8 +23,8 @@ class MagicBridgeAPI:
             scripts_dir = Path(__file__).parent.parent / "bin"
         
         self.scripts_dir = Path(scripts_dir)
-        self.script_load = self.scripts_dir / "1_cargar_datos_v3.cpython-312.pyc"
-        self.script_cmd = self.scripts_dir / "2_ejecutar_comando_v3.cpython-312.pyc"
+        self.script_load = self.scripts_dir / "runner_load.py"
+        self.script_cmd = self.scripts_dir / "runner_cmd.py"
         
     def load_data(self, hmf_file, port, pcb, variant, timeout=300):
         """Cargar datos HMF al MagicBridge
