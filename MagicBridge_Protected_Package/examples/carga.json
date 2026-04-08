@@ -1,0 +1,29 @@
+{
+  "operation": "LOAD_DATA",
+  "version": "4.1",
+  "timestamp": {
+    "start": "2026-04-07T17:57:21.994623",
+    "end": null,
+    "duration_ms": null
+  },
+  "input": {
+    "hmf_file": " .\\Ford_MACH_E_20230901_R018.hmf",
+    "port": "COM25",
+    "pcb": 5,
+    "variant": "D"
+  },
+  "status": "ERROR",
+  "exit_code": 2,
+  "result": {},
+  "errors": [
+    {
+      "timestamp": "2026-04-07T17:57:22.093569",
+      "message": "Archivo no encontrado:  .\\Ford_MACH_E_20230901_R018.hmf"
+    }
+  ],
+  "metadata": {
+    "hostname": "david",
+    "python_version": "3.11.9",
+    "os": "Windows"
+  }
+}

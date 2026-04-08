@@ -12,8 +12,8 @@ import sys
 from datetime import datetime
 
 # Configuración
-ARCHIVO_HMF = "datos.hmf"  # Cambiar por tu archivo
-PUERTO = "/dev/ttyACM0"     # Cambiar por tu puerto (COM3 en Windows)
+ARCHIVO_HMF = " .\Ford_MACH_E_20230901_R018.hmf"  # Cambiar por tu archivo
+PUERTO = "COM25"     # Cambiar por tu puerto (COM3 en Windows)
 PCB = 5
 VARIANTE = "D"
 
@@ -39,7 +39,7 @@ def cargar_datos():
     print("━" * 60)
     
     cmd = [
-        "python3", "../scripts/1_cargar_datos_v3.py",
+        "python", "../bin/runner_load.py",
         ARCHIVO_HMF, PUERTO, str(PCB), VARIANTE,
         "--json", "carga.json",
         "--quiet"
@@ -72,7 +72,7 @@ def programar_chip():
     comando = f"W{PCB}{VARIANTE.lower()}"
     
     cmd = [
-        "python3", "../scripts/2_ejecutar_comando_v3.py",
+        "python", "../bin/runner_cmd.py",
         PUERTO, comando,
         "--json", "programacion.json",
         "--quiet"
